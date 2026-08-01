@@ -175,6 +175,7 @@ app.get('/', (req, res) => {
               cursor: pointer;
               display: flex;
               align-items: center;
+              padding: 4px;
             }
             .header h1 { font-size: 18px; color: #38bdf8; flex-grow: 1; }
             .header-badge { font-size: 13px; color: #94a3b8; }
@@ -221,7 +222,7 @@ app.get('/', (req, res) => {
               border-bottom: 1px solid #334155;
             }
             .sidebar-title { font-weight: bold; font-size: 16px; color: #38bdf8; }
-            .close-btn { background: transparent; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; }
+            .close-btn { background: transparent; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; padding: 4px; }
             .tab-btn {
               background: transparent;
               color: #cbd5e1;
@@ -236,6 +237,7 @@ app.get('/', (req, res) => {
               display: flex;
               align-items: center;
               gap: 12px;
+              width: 100%;
             }
             .tab-btn:hover { background: #334155; }
             .tab-btn.active { background: #0284c7; color: #fff; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); }
@@ -295,6 +297,7 @@ app.get('/', (req, res) => {
               font-weight: bold;
               font-size: 15px;
               cursor: pointer;
+              width: 100%;
             }
             button.action-btn:hover { background: #0ea5e9; }
             .content-list { display: flex; flex-direction: column; gap: 12px; }
@@ -323,24 +326,24 @@ app.get('/', (req, res) => {
     </head>
     <body>
         <div class="header">
-            <button class="hamburger" onclick="toggleSidebar()" aria-label="Open Menu">☰</button>
+            <button class="hamburger" id="hamburger-btn" aria-label="Open Menu">☰</button>
             <h1>Creator Dashboard</h1>
             <span class="header-badge">Welcome!</span>
         </div>
 
-        <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+        <div class="sidebar-overlay" id="overlay"></div>
 
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <span class="sidebar-title">Modules Menu</span>
-                <button class="close-btn" onclick="toggleSidebar()">✕</button>
+                <button class="close-btn" id="close-sidebar-btn">✕</button>
             </div>
-            <button class="tab-btn active" onclick="switchTab('overview', this)">📊 1. Overview</button>
-            <button class="tab-btn" onclick="switchTab('contents', this)">📝 2. Contents</button>
+            <button class="tab-btn active" data-tab="overview">📊 1. Overview</button>
+            <button class="tab-btn" data-tab="contents">📝 2. Contents</button>
             <button class="tab-btn" onclick="alert('Module 3: Analytics coming soon!')">📈 3. Analytics</button>
             <button class="tab-btn" onclick="alert('Module 4: Revenue coming soon!')">💰 4. Revenue</button>
             <button class="tab-btn" onclick="alert('Module 5: Community coming soon!')">💬 5. Community</button>
-            <button class="tab-btn" onclick="switchTab('settings', this)">⚙️ 6. Settings (API)</button>
+            <button class="tab-btn" data-tab="settings">⚙️ 6. Settings (API)</button>
         </div>
 
         <div class="container">
@@ -393,13 +396,26 @@ app.get('/', (req, res) => {
                 overlay.classList.toggle('active');
             }
 
+            document.getElementById('hamburger-btn').addEventListener('click', toggleSidebar);
+            document.getElementById('close-sidebar-btn').addEventListener('click', toggleSidebar);
+            document.getElementById('overlay').addEventListener('click', toggleSidebar);
+
+            document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const tabName = btn.getAttribute('data-tab');
+                    switchTab(tabName, btn);
+                });
+            });
+
             function switchTab(tabName, btnElement) {
                 document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
                 document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
                 document.getElementById('tab-' + tabName).classList.add('active');
-                btnElement.classList.add('active');
+                if (btnElement) btnElement.classList.add('active');
+                
                 const sidebar = document.getElementById('sidebar');
                 if (sidebar.classList.contains('open')) { toggleSidebar(); }
+                
                 if (tabName === 'overview') loadOverview();
                 if (tabName === 'contents') loadContents();
                 if (tabName === 'settings') loadSettings();
@@ -412,11 +428,13 @@ app.get('/', (req, res) => {
                     const container = document.getElementById('kpi-container');
                     container.innerHTML = '';
                     data.forEach(item => {
+                        const isMasked = item.value === '--';
+                        const changeClass = isMasked ? 'neutral' : 'pos';
                         container.innerHTML += 
                           '<div class="kpi-card">' +
                               '<div class="kpi-title">' + item.title + '</div>' +
                               '<div class="kpi-value">' + item.value + '</div>' +
-                              '<div class="kpi-change pos">' + item.change_percentage + '</div>' +
+                              '<div class="kpi-change ' + changeClass + '">' + item.change_percentage + '</div>' +
                           '</div>';
                     });
                 } catch (err) {
@@ -435,7 +453,7 @@ app.get('/', (req, res) => {
                         return;
                     }
                     data.forEach(item => {
-                        const statusClass = item.status.toLowerCase();
+                        const statusClass = item.status ? item.status.toLowerCase() : 'draft';
                         container.innerHTML += 
                           '<div class="content-item">' +
                               '<div class="content-header">' +
@@ -491,7 +509,7 @@ app.get('/', (req, res) => {
                               '<div class="form-group">' +
                                   '<input type="text" id="acc-' + item.platform + '" placeholder="Account ID / Username" value="' + (item.account_id || '') + '">' +
                                   '<input type="password" id="key-' + item.platform + '" placeholder="API Key / Access Token" value="' + (item.api_key || '') + '">' +
-                                  '<button class="action-btn" onclick="saveSocial(\'' + item.platform + '\')">Save & Update ' + item.platform + '</button>' +
+                                  '<button class="action-btn" onclick="saveSocial(\\\'' + item.platform + '\\\')">Save & Update ' + item.platform + '</button>' +
                               '</div>' +
                           '</div>';
                     });
@@ -523,8 +541,4 @@ app.get('/', (req, res) => {
     </body>
     </html>
   `);
-});
-
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
 });
