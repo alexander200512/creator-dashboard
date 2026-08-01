@@ -139,7 +139,6 @@ app.post('/api/settings/socials', async (req, res) => {
     res.status(500).json({ error: "Errore salvataggio API Social" });
   }
 });
-
 // ==========================================
 // FRONTEND INTEGRATO CON SIDEBAR LATERALE
 // ==========================================
@@ -375,7 +374,7 @@ app.get('/', (req, res) => {
         </style>
     </head>
     <body>
-        <!-- Header Fisso con Pulsante Hamburger -->
+            <!-- Header Fisso con Pulsante Hamburger -->
         <div class="header">
             <button class="hamburger" onclick="toggleSidebar()" aria-label="Apri Menu">☰</button>
             <h1>🚀 Creator Dashboard</h1>
@@ -470,7 +469,6 @@ app.get('/', (req, res) => {
                 document.getElementById('tab-' + tabName).classList.add('active');
                 btnElement.classList.add('active');
                 
-                // Chiude la sidebar dopo aver cliccato una voce
                 const sidebar = document.getElementById('sidebar');
                 if (sidebar.classList.contains('open')) {
                     toggleSidebar();
@@ -515,4 +513,120 @@ app.get('/', (req, res) => {
                     const container = document.getElementById('contents-list');
                     container.innerHTML = '';
                     
-            
+                    if (data.length === 0) {
+                        container.innerHTML = '<div class="placeholder-box">Nessun contenuto inserito. Aggiungine uno sopra!</div>';
+                        return;
+                    }
+
+                    data.forEach(item => {
+                        const statusClass = item.status.toLowerCase();
+                        container.innerHTML += 
+                          '<div class="content-item">' +
+                              '<div class="content-header">' +
+                                  '<span class="content-title">' + item.title + '</span>' +
+                                  '<span class="badge ' + statusClass + '">' + item.status + '</span>' +
+                              '</div>' +
+                              '<div style="font-size: 13px; color: #38bdf8;">Tipologia: ' + item.type + '</div>' +
+                              '<div class="content-seo">🏷️ Tag: ' + (item.seo_tags || 'Nessuno') + '</div>' +
+                          '</div>';
+                    });
+                } catch (err) {
+                    document.getElementById('contents-list').innerText = 'Errore nel caricamento dei contenuti.';
+                }
+            }
+
+            async function addContent() {
+                const title = document.getElementById('cTitle').value;
+                const type = document.getElementById('cType').value;
+                const status = document.getElementById('cStatus').value;
+                const seo_tags = document.getElementById('cTags').value;
+
+                if (!title.trim()) {
+                    alert('Inserisci un titolo valido');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/contents', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title, type, status, seo_tags })
+                    });
+                    const resData = await response.json();
+                    if (resData.success) {
+                        document.getElementById('cTitle').value = '';
+                        document.getElementById('cTags').value = '';
+                        loadContents();
+                    } else {
+                        alert('Errore durante il salvataggio');
+                    }
+                } catch (err) {
+                    alert('Errore di connessione al server');
+                }
+            }
+
+            // --- SETTINGS (API SOCIAL) ---
+            async function loadSettings() {
+                try {
+                    const response = await fetch('/api/settings/socials');
+                    const data = await response.json();
+                    const container = document.getElementById('social-integrations-list');
+                    container.innerHTML = '';
+
+                    data.forEach(item => {
+                        const isConn = item.is_connected;
+                        const statusText = isConn ? 'Connesso' : 'Disconnesso';
+                        const statusClass = isConn ? 'status-connected' : 'status-disconnected';
+
+                        container.innerHTML += 
+                          '<div class="form-card">' +
+                              '<div class="social-header">' +
+                                  '<strong>' + item.platform + '</strong>' +
+                                  '<span class="status-badge ' + statusClass + '">' + statusText + '</span>' +
+                              '</div>' +
+                              '<div class="form-group">' +
+                                  '<input type="text" id="acc-' + item.platform + '" placeholder="Account ID / Username" value="' + (item.account_id || '') + '">' +
+                                  '<input type="password" id="key-' + item.platform + '" placeholder="API Key / Access Token" value="' + (item.api_key || '') + '">' +
+                                  '<button class="action-btn" onclick="saveSocial(\'' + item.platform + '\')">Salva e Aggiorna ' + item.platform + '</button>' +
+                              '</div>' +
+                          '</div>';
+                    });
+                } catch (err) {
+                    document.getElementById('social-integrations-list').innerText = 'Errore caricamento impostazioni.';
+                }
+            }
+
+            async function saveSocial(platform) {
+                const account_id = document.getElementById('acc-' + platform).value;
+                const api_key = document.getElementById('key-' + platform).value;
+
+                try {
+                    const response = await fetch('/api/settings/socials', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ platform, account_id, api_key })
+                    });
+                    const resData = await response.json();
+                    if (resData.success) {
+                        alert('Impostazioni salvate per ' + platform + '!');
+                        loadSettings();
+                    } else {
+                        alert('Errore nel salvataggio.');
+                    }
+                } catch (err) {
+                    alert('Errore di connessione.');
+                }
+            }
+
+            // Caricamento iniziale dei KPI all'avvio della pagina
+            loadOverview();
+        </script>
+    </body>
+    </html>
+  `);
+});
+
+app.listen(port, () => {
+  console.log(`Server in ascolto sulla porta ${port}`);
+});
+
