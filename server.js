@@ -149,6 +149,51 @@ app.post('/api/settings/socials', async (req, res) => {
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
+const { google } = require('googleapis');
+
+// Configurazione OAuth2 (Usa le credenziali che crei su Google Cloud Console)
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI // es. https://tuo-servizio.up.railway.app/auth/google/callback
+);
+
+// 1. Rotta per avviare il login (da richiamare quando clicchi "Accedi con YouTube")
+app.get('/auth/google', (req, res) => {
+  const scopes = [
+    'https://www.googleapis.com/auth/youtube.readonly',
+    'https://www.googleapis.com/auth/yt-analytics.readonly'
+  ];
+  const url = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: scopes,
+    prompt: 'consent'
+  });
+  res.redirect(url);
+});
+
+// 2. Rotta di Callback dove Google rimanda l'utente dopo il login
+app.get('/auth/google/callback', async (req, res) => {
+  const code = req.query.code;
+  try {
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
+
+    // Salva il refresh_token e access_token nel database PostgreSQL
+    await pool.query(
+      `UPDATE social_integrations 
+       SET account_id = $1, api_key = $2, is_connected = $3, updated_at = CURRENT_TIMESTAMP 
+       WHERE platform = $4`,
+      ['YouTube User', tokens.refresh_token || tokens.access_token, true, 'YouTube']
+    );
+
+    // Reindirizza l'utente alla dashboard con successo
+    res.redirect('/?login=success');
+  } catch (err) {
+    console.error('Errore durante l autenticazione OAuth:', err);
+    res.status(500).redirect('/?login=error');
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
