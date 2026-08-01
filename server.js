@@ -145,7 +145,6 @@ app.post('/api/settings/socials', async (req, res) => {
     res.status(500).json({ error: "Error saving social API settings" });
   }
 });
-
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -485,4 +484,66 @@ app.get('/', (req, res) => {
                     });
                     const resData = await response.json();
                     if (resData.success) {
-                        document.getElementById('
+                        document.getElementById('cTitle').value = '';
+                        document.getElementById('cTags').value = '';
+                        loadContents();
+                    } else { alert('Errore salvataggio'); }
+                } catch (err) { alert('Errore di connessione'); }
+            }
+
+            async function loadSettings() {
+                try {
+                    const response = await fetch('/api/settings/socials');
+                    const data = await response.json();
+                    const container = document.getElementById('social-integrations-list');
+                    container.innerHTML = '';
+                    data.forEach(item => {
+                        const isConn = item.is_connected;
+                        const statusText = isConn ? 'Connesso' : 'Disconnesso';
+                        const statusClass = isConn ? 'status-connected' : 'status-disconnected';
+                        container.innerHTML += 
+                          '<div class="form-card">' +
+                              '<div class="social-header">' +
+                                  '<strong>' + item.platform + '</strong>' +
+                                  '<span class="status-badge ' + statusClass + '">' + statusText + '</span>' +
+                              '</div>' +
+                              '<div class="form-group">' +
+                                  '<input type="text" id="acc-' + item.platform + '" placeholder="Account ID / Username" value="' + (item.account_id || '') + '">' +
+                                  '<input type="password" id="key-' + item.platform + '" placeholder="API Key / Access Token" value="' + (item.api_key || '') + '">' +
+                                  '<button class="action-btn" onclick="saveSocial(\'' + item.platform + '\')">Salva ' + item.platform + '</button>' +
+                              '</div>' +
+                          '</div>';
+                    });
+                } catch (err) {
+                    document.getElementById('social-integrations-list').innerText = 'Errore caricamento impostazioni.';
+                }
+            }
+
+            async function saveSocial(platform) {
+                const account_id = document.getElementById('acc-' + platform).value;
+                const api_key = document.getElementById('key-' + platform).value;
+                try {
+                    const response = await fetch('/api/settings/socials', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ platform, account_id, api_key })
+                    });
+                    const resData = await response.json();
+                    if (resData.success) {
+                        alert('Impostazioni salvate per ' + platform + '!');
+                        loadSettings();
+                    } else { alert('Errore durante il salvataggio.'); }
+                } catch (err) { alert('Errore di connessione.'); }
+            }
+
+            loadOverview();
+            loadContents();
+        </script>
+    </body>
+    </html>
+  `);
+});
+
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
+});
