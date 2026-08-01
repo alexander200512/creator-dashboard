@@ -78,18 +78,7 @@ initDb();
 // API Routes
 app.get('/api/overview', async (req, res) => {
   try {
-    const socialCheck = await pool.query('SELECT COUNT(*) FROM social_integrations WHERE is_connected = true');
-    const isConnected = parseInt(socialCheck.rows[0].count) > 0;
     const result = await pool.query('SELECT * FROM kpi_metrics ORDER BY id ASC');
-    
-    if (!isConnected) {
-      const maskedRows = result.rows.map(row => ({
-        ...row,
-        value: '--',
-        change_percentage: '-- vs last month'
-      }));
-      return res.json(maskedRows);
-    }
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: "Overview API Error" });
@@ -149,6 +138,7 @@ app.post('/api/settings/socials', async (req, res) => {
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
+
 const { google } = require('googleapis');
 
 // Configurazione OAuth2 (Usa le credenziali che crei su Google Cloud Console)
