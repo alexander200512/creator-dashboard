@@ -12,7 +12,6 @@ const pool = new Pool({
 
 app.use(express.json());
 
-// Inizializzazione Database (uguale a prima)
 async function initDb() {
   try {
     await pool.query(`
@@ -74,8 +73,6 @@ async function initDb() {
   }
 }
 initDb();
-
-// API Routes
 app.get('/api/overview', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM kpi_metrics ORDER BY id ASC');
@@ -134,21 +131,33 @@ app.post('/api/settings/socials', async (req, res) => {
   }
 });
 
-// Servi index.html direttamente dalla root principale
+app.post('/api/settings/disconnect', async (req, res) => {
+  const platform = req.body.platform;
+  try {
+    await pool.query(
+      `UPDATE social_integrations 
+       SET account_id = '', api_key = '', is_connected = false, updated_at = CURRENT_TIMESTAMP 
+       WHERE platform = $1`,
+      [platform]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Error disconnecting platform" });
+  }
+});
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const { google } = require('googleapis');
 
-// Configurazione OAuth2 (Usa le credenziali che crei su Google Cloud Console)
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  process.env.GOOGLE_REDIRECT_URI // es. https://tuo-servizio.up.railway.app/auth/google/callback
+  process.env.GOOGLE_REDIRECT_URI
 );
 
-// 1. Rotta per avviare il login (da richiamare quando clicchi "Accedi con YouTube")
 app.get('/auth/google', (req, res) => {
   const scopes = [
     'https://www.googleapis.com/auth/youtube.readonly',
@@ -162,14 +171,12 @@ app.get('/auth/google', (req, res) => {
   res.redirect(url);
 });
 
-// 2. Rotta di Callback dove Google rimanda l'utente dopo il login
 app.get('/auth/google/callback', async (req, res) => {
   const code = req.query.code;
   try {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
 
-    // Salva il refresh_token e access_token nel database PostgreSQL
     await pool.query(
       `UPDATE social_integrations 
        SET account_id = $1, api_key = $2, is_connected = $3, updated_at = CURRENT_TIMESTAMP 
@@ -177,10 +184,9 @@ app.get('/auth/google/callback', async (req, res) => {
       ['YouTube User', tokens.refresh_token || tokens.access_token, true, 'YouTube']
     );
 
-    // Reindirizza l'utente alla dashboard con successo
     res.redirect('/?login=success');
   } catch (err) {
-    console.error('Errore durante l autenticazione OAuth:', err);
+    console.error('Error during Google OAuth authentication:', err);
     res.status(500).redirect('/?login=error');
   }
 });
