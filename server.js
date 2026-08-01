@@ -145,6 +145,7 @@ app.post('/api/settings/socials', async (req, res) => {
     res.status(500).json({ error: "Error saving social API settings" });
   }
 });
+
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -185,6 +186,7 @@ app.get('/', (req, res) => {
             }
             .header h1 { font-size: 18px; color: #38bdf8; flex-grow: 1; }
             .header-badge { font-size: 13px; color: #94a3b8; }
+            
             .sidebar-overlay {
               position: fixed;
               top: 0;
@@ -229,6 +231,7 @@ app.get('/', (req, res) => {
             }
             .sidebar-title { font-weight: bold; font-size: 16px; color: #38bdf8; }
             .close-btn { background: transparent; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; padding: 4px; }
+            
             .tab-btn {
               background: transparent;
               color: #cbd5e1;
@@ -247,12 +250,14 @@ app.get('/', (req, res) => {
             }
             .tab-btn:hover { background: #334155; }
             .tab-btn.active { background: #0284c7; color: #fff; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); }
+            
             .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
             .tab-pane { display: none; }
             .tab-pane.active { display: block; }
+            
             .kpi-grid {
               display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+              grid-template-columns: 1fr;
               gap: 16px;
               margin-bottom: 24px;
             }
@@ -268,6 +273,7 @@ app.get('/', (req, res) => {
             .kpi-change { font-size: 13px; font-weight: 600; display: inline-block; padding: 4px 8px; border-radius: 6px; }
             .pos { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
             .neutral { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
+            
             .section-title { font-size: 18px; margin: 20px 0 12px 0; color: #e2e8f0; }
             .placeholder-box {
               background: #1e293b;
@@ -306,6 +312,7 @@ app.get('/', (req, res) => {
               width: 100%;
             }
             button.action-btn:hover { background: #0ea5e9; }
+            
             .content-list { display: flex; flex-direction: column; gap: 12px; }
             .content-item {
               background: #1e293b;
@@ -323,72 +330,69 @@ app.get('/', (req, res) => {
             .badge.scheduled { background: rgba(234, 179, 8, 0.2); color: #facc15; }
             .badge.draft { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
             .content-seo { font-size: 13px; color: #94a3b8; }
+            
             .social-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
             .status-badge { font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: bold; }
             .status-connected { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; }
             .status-disconnected { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
-            @media (max-width: 600px) { .kpi-grid { grid-template-columns: 1fr; } }
         </style>
     </head>
     <body>
         <div class="header">
             <button class="hamburger" onclick="toggleSidebar()" aria-label="Open Menu">☰</button>
             <h1>Creator Dashboard</h1>
-            <span class="header-badge">Welcome!</span>
+            <span class="header-badge">Benvenuto!</span>
         </div>
 
         <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <span class="sidebar-title">Modules Menu</span>
+                <span class="sidebar-title">Menu Navigazione</span>
                 <button class="close-btn" onclick="toggleSidebar()">✕</button>
             </div>
             <button class="tab-btn active" onclick="switchTab('overview', this)">📊 1. Overview</button>
-            <button class="tab-btn" onclick="switchTab('contents', this)">📝 2. Contents</button>
-            <button class="tab-btn" onclick="alert('Module 3: Analytics coming soon!')">📈 3. Analytics</button>
-            <button class="tab-btn" onclick="alert('Module 4: Revenue coming soon!')">💰 4. Revenue</button>
-            <button class="tab-btn" onclick="alert('Module 5: Community coming soon!')">💬 5. Community</button>
-            <button class="tab-btn" onclick="switchTab('settings', this)">⚙️ 6. Settings (API)</button>
+            <button class="tab-btn" onclick="switchTab('contents', this)">📝 2. Contenuti</button>
+            <button class="tab-btn" onclick="switchTab('settings', this)">⚙️ 3. Settings (API)</button>
         </div>
 
         <div class="container">
             <div id="tab-overview" class="tab-pane active">
-                <h2 class="section-title" style="margin-top:0;">Main KPI (Real-Time)</h2>
+                <h2 class="section-title" style="margin-top:0;">KPI Principali (Tempo Reale)</h2>
                 <div id="kpi-container" class="kpi-grid"></div>
-                <h2 class="section-title">Previous Period Trend</h2>
+                <h2 class="section-title">Andamento Periodo Precedente</h2>
                 <div class="placeholder-box">
-                    💡 Connect your accounts in the <strong>Settings (API)</strong> section to import real metrics!
+                    📈 Qui inseriremo il grafico di crescita (Visualizzazioni e Ricavi) nel prossimo step.
                 </div>
             </div>
 
             <div id="tab-contents" class="tab-pane">
                 <div class="form-card">
-                    <h2 class="section-title" style="margin-top:0;">⚡ Quick Editor / New Content</h2>
+                    <h2 class="section-title" style="margin-top:0;">⚡ Aggiungi Contenuto</h2>
                     <div class="form-group">
-                        <input type="text" id="cTitle" placeholder="Content title">
+                        <input type="text" id="cTitle" placeholder="Titolo del contenuto">
                         <select id="cType">
                             <option value="Video">YouTube Video</option>
                             <option value="Post">Social Post</option>
                             <option value="Live">Live Stream</option>
                         </select>
                         <select id="cStatus">
-                            <option value="Published">Published</option>
-                            <option value="Scheduled">Scheduled</option>
-                            <option value="Draft">Draft</option>
+                            <option value="Published">Pubblicato</option>
+                            <option value="Scheduled">Programmato</option>
+                            <option value="Draft">Bozza</option>
                         </select>
-                        <input type="text" id="cTags" placeholder="SEO Tags (e.g. gaming, tutorial)">
-                        <button class="action-btn" onclick="addContent()">+ Add to Content Hub</button>
+                        <input type="text" id="cTags" placeholder="Tag SEO (es. gaming, tutorial)">
+                        <button class="action-btn" onclick="addContent()">+ Salva Contenuto</button>
                     </div>
                 </div>
-                <h2 class="section-title">My Contents</h2>
+                <h2 class="section-title">I Miei Contenuti</h2>
                 <div id="contents-list" class="content-list"></div>
             </div>
 
             <div id="tab-settings" class="tab-pane">
-                <h2 class="section-title" style="margin-top:0;">🔗 Social Profile API Integration</h2>
+                <h2 class="section-title" style="margin-top:0;">🔗 Integrazione API Social</h2>
                 <p style="color:#94a3b8; font-size:14px; margin-bottom:20px;">
-                    Enter your channel or account ID and API key (or OAuth Access Token) to enable metrics and KPI synchronization.
+                    Inserisci l'ID canale e la chiave API per abilitare la sincronizzazione dei KPI in tempo reale.
                 </p>
                 <div id="social-integrations-list"></div>
             </div>
@@ -408,8 +412,7 @@ app.get('/', (req, res) => {
                 document.getElementById('tab-' + tabName).classList.add('active');
                 if (btnElement) btnElement.classList.add('active');
                 
-                const sidebar = document.getElementById('sidebar');
-                if (sidebar.classList.contains('open')) { toggleSidebar(); }
+                toggleSidebar();
                 
                 if (tabName === 'overview') loadOverview();
                 if (tabName === 'contents') loadContents();
@@ -423,7 +426,7 @@ app.get('/', (req, res) => {
                     const container = document.getElementById('kpi-container');
                     container.innerHTML = '';
                     if (!Array.isArray(data)) {
-                        container.innerHTML = '<div class="placeholder-box">Error loading metrics.</div>';
+                        container.innerHTML = '<div class="placeholder-box">Errore caricamento metriche.</div>';
                         return;
                     }
                     data.forEach(item => {
@@ -437,7 +440,7 @@ app.get('/', (req, res) => {
                           '</div>';
                     });
                 } catch (err) {
-                    document.getElementById('kpi-container').innerText = 'Error loading metrics.';
+                    document.getElementById('kpi-container').innerText = 'Errore di connessione.';
                 }
             }
 
@@ -448,7 +451,7 @@ app.get('/', (req, res) => {
                     const container = document.getElementById('contents-list');
                     container.innerHTML = '';
                     if (!Array.isArray(data) || data.length === 0) {
-                        container.innerHTML = '<div class="placeholder-box">No contents added yet. Add one above!</div>';
+                        container.innerHTML = '<div class="placeholder-box">Nessun contenuto inserito.</div>';
                         return;
                     }
                     data.forEach(item => {
@@ -459,12 +462,12 @@ app.get('/', (req, res) => {
                                   '<span class="content-title">' + item.title + '</span>' +
                                   '<span class="badge ' + statusClass + '">' + item.status + '</span>' +
                               '</div>' +
-                              '<div style="font-size: 13px; color: #38bdf8;">Type: ' + item.type + '</div>' +
-                              '<div class="content-seo">🏷️ Tags: ' + (item.seo_tags || 'None') + '</div>' +
+                              '<div style="font-size: 13px; color: #38bdf8;">Tipo: ' + item.type + '</div>' +
+                              '<div class="content-seo">🏷️ Tag: ' + (item.seo_tags || 'Nessuno') + '</div>' +
                           '</div>';
                     });
                 } catch (err) {
-                    document.getElementById('contents-list').innerText = 'Error loading contents.';
+                    document.getElementById('contents-list').innerText = 'Errore caricamento contenuti.';
                 }
             }
 
@@ -473,7 +476,7 @@ app.get('/', (req, res) => {
                 const type = document.getElementById('cType').value;
                 const status = document.getElementById('cStatus').value;
                 const seo_tags = document.getElementById('cTags').value;
-                if (!title.trim()) { alert('Please enter a valid title'); return; }
+                if (!title.trim()) { alert('Inserisci un titolo valido'); return; }
                 try {
                     const response = await fetch('/api/contents', {
                         method: 'POST',
@@ -482,67 +485,4 @@ app.get('/', (req, res) => {
                     });
                     const resData = await response.json();
                     if (resData.success) {
-                        document.getElementById('cTitle').value = '';
-                        document.getElementById('cTags').value = '';
-                        loadContents();
-                    } else { alert('Error saving content'); }
-                } catch (err) { alert('Server connection error'); }
-            }
-
-            async function loadSettings() {
-                try {
-                    const response = await fetch('/api/settings/socials');
-                    const data = await response.json();
-                    const container = document.getElementById('social-integrations-list');
-                    container.innerHTML = '';
-                    data.forEach(item => {
-                        const isConn = item.is_connected;
-                        const statusText = isConn ? 'Connected' : 'Disconnected';
-                        const statusClass = isConn ? 'status-connected' : 'status-disconnected';
-                        container.innerHTML += 
-                          '<div class="form-card">' +
-                              '<div class="social-header">' +
-                                  '<strong>' + item.platform + '</strong>' +
-                                  '<span class="status-badge ' + statusClass + '">' + statusText + '</span>' +
-                              '</div>' +
-                              '<div class="form-group">' +
-                                  '<input type="text" id="acc-' + item.platform + '" placeholder="Account ID / Username" value="' + (item.account_id || '') + '">' +
-                                  '<input type="password" id="key-' + item.platform + '" placeholder="API Key / Access Token" value="' + (item.api_key || '') + '">' +
-                                  '<button class="action-btn" onclick="saveSocial(\'' + item.platform + '\')">Save & Update ' + item.platform + '</button>' +
-                              '</div>' +
-                          '</div>';
-                    });
-                } catch (err) {
-                    document.getElementById('social-integrations-list').innerText = 'Error loading settings.';
-                }
-            }
-
-            async function saveSocial(platform) {
-                const account_id = document.getElementById('acc-' + platform).value;
-                const api_key = document.getElementById('key-' + platform).value;
-                try {
-                    const response = await fetch('/api/settings/socials', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ platform, account_id, api_key })
-                    });
-                    const resData = await response.json();
-                    if (resData.success) {
-                        alert('Settings saved for ' + platform + '!');
-                        loadSettings();
-                    } else { alert('Error saving settings.'); }
-                } catch (err) { alert('Connection error.'); }
-            }
-
-            loadOverview();
-            loadContents();
-        </script>
-    </body>
-    </html>
-  `);
-});
-
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
-
-});
+                        document.getElementById('
