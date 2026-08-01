@@ -242,12 +242,11 @@
         <div id="tab-settings" class="tab-pane">
             <h2 class="section-title" style="margin-top:0;">🔗 Integrazione API Social</h2>
             <p style="color:#94a3b8; font-size:14px; margin-bottom:20px;">
-                Inserisci l'ID canale e la chiave API per abilitare la sincronizzazione dei KPI in tempo reale.
+                Collega i tuoi account per sincronizzare i dati e le metriche in tempo reale.
             </p>
             <div id="social-integrations-list"></div>
         </div>
     </div>
-
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -357,6 +356,7 @@
                 const data = await response.json();
                 const container = document.getElementById('social-integrations-list');
                 container.innerHTML = '';
+                
                 data.forEach(item => {
                     const isConn = item.is_connected;
                     const statusText = isConn ? 'Connesso' : 'Disconnesso';
@@ -364,16 +364,32 @@
                     
                     const card = document.createElement('div');
                     card.className = 'form-card';
-                    card.innerHTML = 
-                      '<div class="social-header">' +
-                          '<strong>' + item.platform + '</strong>' +
-                          '<span class="status-badge ' + statusClass + '">' + statusText + '</span>' +
-                      '</div>' +
-                      '<div class="form-group">' +
-                          '<input type="text" id="acc-' + item.platform + '" placeholder="Account ID / Username" value="' + (item.account_id || '') + '">' +
-                          '<input type="password" id="key-' + item.platform + '" placeholder="API Key / Access Token" value="' + (item.api_key || '') + '">' +
-                          '<button class="action-btn save-social-btn" data-platform="' + item.platform + '">Salva ' + item.platform + '</button>' +
-                      '</div>';
+
+                    // Se è YouTube inserisce il pulsante OAuth di Google
+                    if (item.platform === 'YouTube') {
+                        card.innerHTML = 
+                          '<div class="social-header">' +
+                              '<strong>YouTube</strong>' +
+                              '<span class="status-badge ' + statusClass + '">' + statusText + '</span>' +
+                          '</div>' +
+                          '<p style="color:#94a3b8; font-size:13px; margin-bottom:12px;">Collega il canale tramite l\'autenticazione ufficiale Google per sincronizzare i dati.</p>' +
+                          (isConn 
+                              ? '<a href="/auth/google" class="action-btn" style="display:block; text-align:center; text-decoration:none; background:#22c55e; color:#fff;">Riconnetti con Google</a>'
+                              : '<a href="/auth/google" class="action-btn" style="display:block; text-align:center; text-decoration:none; background:#4285F4; color:#fff;">Accedi con Google</a>'
+                          );
+                    } else {
+                        // Per le altre piattaforme mantiene i campi manuali
+                        card.innerHTML = 
+                          '<div class="social-header">' +
+                              '<strong>' + item.platform + '</strong>' +
+                              '<span class="status-badge ' + statusClass + '">' + statusText + '</span>' +
+                          '</div>' +
+                          '<div class="form-group">' +
+                              '<input type="text" id="acc-' + item.platform + '" placeholder="Account ID / Username" value="' + (item.account_id || '') + '">' +
+                              '<input type="password" id="key-' + item.platform + '" placeholder="API Key / Access Token" value="' + (item.api_key || '') + '">' +
+                              '<button class="action-btn save-social-btn" data-platform="' + item.platform + '">Salva ' + item.platform + '</button>' +
+                          '</div>';
+                    }
                     container.appendChild(card);
                 });
 
@@ -406,4 +422,3 @@
     </script>
 </body>
 </html>
-
