@@ -4,16 +4,13 @@ const { Pool } = require('pg');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Connessione al database PostgreSQL di Railway
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-// Middleware per leggere il formato JSON nelle richieste API
 app.use(express.json());
 
-// Tabella di esempio per testare le API (creata in automatico all'avvio)
 async function initDb() {
   try {
     await pool.query(`
@@ -24,7 +21,6 @@ async function initDb() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    // Inserisce un dato di prova se la tabella è vuota
     const res = await pool.query('SELECT COUNT(*) FROM stats');
     if (parseInt(res.rows[0].count) === 0) {
       await pool.query("INSERT INTO stats (name, value) VALUES ('Visualizzazioni', 1250), ('Iscritti', 340)");
@@ -35,10 +31,6 @@ async function initDb() {
 }
 initDb();
 
-// --- API ROUTES ---
-
-// 1. Ottieni tutti i dati dal database
-api/stats
 app.get('/api/stats', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM stats ORDER BY id ASC');
@@ -49,7 +41,6 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
-// 2. Aggiungi o aggiorna un dato tramite API
 app.post('/api/stats', async (req, res) => {
   const { name, value } = req.body;
   try {
@@ -64,7 +55,6 @@ app.post('/api/stats', async (req, res) => {
   }
 });
 
-// --- FRONTEND HTML (La tua interfaccia) ---
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -104,12 +94,12 @@ app.get('/', (req, res) => {
                     const listContainer = document.getElementById('stats-list');
                     listContainer.innerHTML = '';
                     data.forEach(stat => {
-                        listContainer.innerHTML += \`
+                        listContainer.innerHTML += `
                             <div class="card">
-                                <span>\${stat.name}</span>
-                                <strong>\${stat.value}</strong>
+                                <span>${stat.name}</span>
+                                <strong>${stat.value}</strong>
                             </div>
-                        \`;
+                        `;
                     });
                 } catch (err) {
                     document.getElementById('stats-list').innerText = 'Errore di connessione alle API.';
@@ -140,5 +130,6 @@ app.get('/', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(\`Server in ascolto sulla porta ${port}\`);
+  console.log(`Server in ascolto sulla porta ${port}`);
 });
+  
