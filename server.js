@@ -59,8 +59,7 @@ async function initDb() {
     } else {
       await pool.query(`
         UPDATE kpi_metrics 
-        SET value = '--', change_percentage = '--' 
-        WHERE value IN ('142.5K', '1,280', '€ 845,00', '6.8%')
+        SET value = '--', change_percentage = '--'
       `);
     }
 
@@ -139,6 +138,7 @@ app.post('/api/settings/socials', async (req, res) => {
     res.status(500).json({ error: "Errore salvataggio API Social" });
   }
 });
+
 // ==========================================
 // FRONTEND INTEGRATO CON SIDEBAR LATERALE
 // ==========================================
@@ -160,7 +160,7 @@ app.get('/', (req, res) => {
               overflow-x: hidden;
             }
             
-            /* Header principale con Hamburger */
+            /* Header principale con Hamburger e Z-Index corretto */
             .header {
               background: #1e293b;
               padding: 16px 20px;
@@ -170,7 +170,7 @@ app.get('/', (req, res) => {
               gap: 16px;
               position: sticky;
               top: 0;
-              z-index: 100;
+              z-index: 1050;
             }
             .hamburger {
               background: transparent;
@@ -212,7 +212,7 @@ app.get('/', (req, res) => {
               height: 100vh;
               background: #1e293b;
               border-right: 1px solid #334155;
-              z-index: 1000;
+              z-index: 1100;
               padding: 20px 16px;
               display: flex;
               flex-direction: column;
@@ -374,7 +374,7 @@ app.get('/', (req, res) => {
         </style>
     </head>
     <body>
-            <!-- Header Fisso con Pulsante Hamburger -->
+        <!-- Header Fisso con Pulsante Hamburger -->
         <div class="header">
             <button class="hamburger" onclick="toggleSidebar()" aria-label="Apri Menu">☰</button>
             <h1>🚀 Creator Dashboard</h1>
@@ -404,7 +404,7 @@ app.get('/', (req, res) => {
             <div id="tab-overview" class="tab-pane active">
                 <h2 class="section-title" style="margin-top:0;">KPI Principali (Tempo Reale)</h2>
                 <div id="kpi-container" class="kpi-grid">
-                    <div>Caricamento metriche in corso...</div>
+                    <!-- I KPI vuoti verranno caricati da API -->
                 </div>
 
                 <h2 class="section-title">Andamento Periodo Precedente</h2>
@@ -436,7 +436,7 @@ app.get('/', (req, res) => {
 
                 <h2 class="section-title">I Miei Contenuti</h2>
                 <div id="contents-list" class="content-list">
-                    <div>Caricamento contenuti dal database...</div>
+                    <!-- Lista contenuti vuota gestita dinamicamente -->
                 </div>
             </div>
 
@@ -446,9 +446,7 @@ app.get('/', (req, res) => {
                 <p style="color:#94a3b8; font-size:14px; margin-bottom:20px;">
                     Inserisci l'ID del tuo canale o account e la chiave API (o OAuth Access Token) per abilitare la sincronizzazione delle metriche e dei KPI.
                 </p>
-                <div id="social-integrations-list">
-                    <div>Caricamento impostazioni social...</div>
-                </div>
+                <div id="social-integrations-list"></div>
             </div>
         </div>
 
@@ -488,16 +486,11 @@ app.get('/', (req, res) => {
                     container.innerHTML = '';
                     
                     data.forEach(item => {
-                        let badgeClass = 'neutral';
-                        if (item.change_percentage !== '--') {
-                            badgeClass = !item.change_percentage.includes('-') ? 'pos' : 'neg';
-                        }
-                        
                         container.innerHTML += 
                           '<div class="kpi-card">' +
                               '<div class="kpi-title">' + item.title + '</div>' +
-                              '<div class="kpi-value">' + item.value + '</div>' +
-                              '<div class="kpi-change ' + badgeClass + '">' + item.change_percentage + ' vs mese scorso</div>' +
+                              '<div class="kpi-value">--</div>' +
+                              '<div class="kpi-change neutral">-- vs mese scorso</div>' +
                           '</div>';
                     });
                 } catch (err) {
@@ -523,110 +516,4 @@ app.get('/', (req, res) => {
                         container.innerHTML += 
                           '<div class="content-item">' +
                               '<div class="content-header">' +
-                                  '<span class="content-title">' + item.title + '</span>' +
-                                  '<span class="badge ' + statusClass + '">' + item.status + '</span>' +
-                              '</div>' +
-                              '<div style="font-size: 13px; color: #38bdf8;">Tipologia: ' + item.type + '</div>' +
-                              '<div class="content-seo">🏷️ Tag: ' + (item.seo_tags || 'Nessuno') + '</div>' +
-                          '</div>';
-                    });
-                } catch (err) {
-                    document.getElementById('contents-list').innerText = 'Errore nel caricamento dei contenuti.';
-                }
-            }
-
-            async function addContent() {
-                const title = document.getElementById('cTitle').value;
-                const type = document.getElementById('cType').value;
-                const status = document.getElementById('cStatus').value;
-                const seo_tags = document.getElementById('cTags').value;
-
-                if (!title.trim()) {
-                    alert('Inserisci un titolo valido');
-                    return;
-                }
-
-                try {
-                    const response = await fetch('/api/contents', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ title, type, status, seo_tags })
-                    });
-                    const resData = await response.json();
-                    if (resData.success) {
-                        document.getElementById('cTitle').value = '';
-                        document.getElementById('cTags').value = '';
-                        loadContents();
-                    } else {
-                        alert('Errore durante il salvataggio');
-                    }
-                } catch (err) {
-                    alert('Errore di connessione al server');
-                }
-            }
-
-            // --- SETTINGS (API SOCIAL) ---
-            async function loadSettings() {
-                try {
-                    const response = await fetch('/api/settings/socials');
-                    const data = await response.json();
-                    const container = document.getElementById('social-integrations-list');
-                    container.innerHTML = '';
-
-                    data.forEach(item => {
-                        const isConn = item.is_connected;
-                        const statusText = isConn ? 'Connesso' : 'Disconnesso';
-                        const statusClass = isConn ? 'status-connected' : 'status-disconnected';
-
-                        container.innerHTML += 
-                          '<div class="form-card">' +
-                              '<div class="social-header">' +
-                                  '<strong>' + item.platform + '</strong>' +
-                                  '<span class="status-badge ' + statusClass + '">' + statusText + '</span>' +
-                              '</div>' +
-                              '<div class="form-group">' +
-                                  '<input type="text" id="acc-' + item.platform + '" placeholder="Account ID / Username" value="' + (item.account_id || '') + '">' +
-                                  '<input type="password" id="key-' + item.platform + '" placeholder="API Key / Access Token" value="' + (item.api_key || '') + '">' +
-                                  '<button class="action-btn" onclick="saveSocial(\'' + item.platform + '\')">Salva e Aggiorna ' + item.platform + '</button>' +
-                              '</div>' +
-                          '</div>';
-                    });
-                } catch (err) {
-                    document.getElementById('social-integrations-list').innerText = 'Errore caricamento impostazioni.';
-                }
-            }
-
-            async function saveSocial(platform) {
-                const account_id = document.getElementById('acc-' + platform).value;
-                const api_key = document.getElementById('key-' + platform).value;
-
-                try {
-                    const response = await fetch('/api/settings/socials', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ platform, account_id, api_key })
-                    });
-                    const resData = await response.json();
-                    if (resData.success) {
-                        alert('Impostazioni salvate per ' + platform + '!');
-                        loadSettings();
-                    } else {
-                        alert('Errore nel salvataggio.');
-                    }
-                } catch (err) {
-                    alert('Errore di connessione.');
-                }
-            }
-
-            // Caricamento iniziale dei KPI all'avvio della pagina
-            loadOverview();
-        </script>
-    </body>
-    </html>
-  `);
-});
-
-app.listen(port, () => {
-  console.log(`Server in ascolto sulla porta ${port}`);
-});
-
+                              
