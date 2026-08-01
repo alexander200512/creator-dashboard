@@ -94,12 +94,7 @@ app.get('/', (req, res) => {
                     const listContainer = document.getElementById('stats-list');
                     listContainer.innerHTML = '';
                     data.forEach(stat => {
-                        listContainer.innerHTML += `
-                            <div class="card">
-                                <span>${stat.name}</span>
-                                <strong>${stat.value}</strong>
-                            </div>
-                        `;
+                        listContainer.innerHTML += '<div class="card"><span>' + stat.name + '</span><strong>' + stat.value + '</strong></div>';
                     });
                 } catch (err) {
                     document.getElementById('stats-list').innerText = 'Errore di connessione alle API.';
@@ -130,6 +125,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server in ascolto sulla porta ${port}`);
+  console.log(\`Server in ascolto sulla porta \${port}\`);
 });
-  
