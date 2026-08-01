@@ -11,7 +11,6 @@ const pool = new Pool({
 
 app.use(express.json());
 
-// Inizializzazione Database
 async function initDb() {
   try {
     await pool.query(`
@@ -46,7 +45,6 @@ async function initDb() {
       )
     `);
     
-    // Popolamento KPI iniziali (con valori di default o "--" se disconnessi)
     const resKpi = await pool.query('SELECT COUNT(*) FROM kpi_metrics');
     if (parseInt(resKpi.rows[0].count) === 0) {
       await pool.query(`
@@ -75,15 +73,10 @@ async function initDb() {
 }
 initDb();
 
-// ==========================================
-// REST API
-// ==========================================
 app.get('/api/overview', async (req, res) => {
   try {
-    // Controlla se ci sono account social connessi per decidere se mostrare i dati o '--'
     const socialCheck = await pool.query('SELECT COUNT(*) FROM social_integrations WHERE is_connected = true');
     const isConnected = parseInt(socialCheck.rows[0].count) > 0;
-
     const result = await pool.query('SELECT * FROM kpi_metrics ORDER BY id ASC');
     
     if (!isConnected) {
@@ -94,7 +87,6 @@ app.get('/api/overview', async (req, res) => {
       }));
       return res.json(maskedRows);
     }
-
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: "Overview API Error" });
@@ -147,10 +139,6 @@ app.post('/api/settings/socials', async (req, res) => {
     res.status(500).json({ error: "Error saving social API settings" });
   }
 });
-
-// ==========================================
-// INTEGRATED FRONTEND (GLOBAL ENGLISH)
-// ==========================================
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -168,8 +156,6 @@ app.get('/', (req, res) => {
               padding-bottom: 70px;
               overflow-x: hidden;
             }
-            
-            /* Header */
             .header {
               background: #1e293b;
               padding: 16px 20px;
@@ -192,8 +178,6 @@ app.get('/', (req, res) => {
             }
             .header h1 { font-size: 18px; color: #38bdf8; flex-grow: 1; }
             .header-badge { font-size: 13px; color: #94a3b8; }
-            
-            /* Overlay */
             .sidebar-overlay {
               position: fixed;
               top: 0;
@@ -211,8 +195,6 @@ app.get('/', (req, res) => {
               opacity: 1;
               visibility: visible;
             }
-
-            /* Sidebar */
             .sidebar {
               position: fixed;
               top: 0;
@@ -229,9 +211,7 @@ app.get('/', (req, res) => {
               transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
               box-shadow: 4px 0 24px rgba(0,0,0,0.5);
             }
-            .sidebar.open {
-              left: 0;
-            }
+            .sidebar.open { left: 0; }
             .sidebar-header {
               display: flex;
               justify-content: space-between;
@@ -240,20 +220,8 @@ app.get('/', (req, res) => {
               margin-bottom: 12px;
               border-bottom: 1px solid #334155;
             }
-            .sidebar-title {
-              font-weight: bold;
-              font-size: 16px;
-              color: #38bdf8;
-            }
-            .close-btn {
-              background: transparent;
-              border: none;
-              color: #94a3b8;
-              font-size: 20px;
-              cursor: pointer;
-            }
-            
-            /* Sidebar Buttons */
+            .sidebar-title { font-weight: bold; font-size: 16px; color: #38bdf8; }
+            .close-btn { background: transparent; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; }
             .tab-btn {
               background: transparent;
               color: #cbd5e1;
@@ -270,18 +238,10 @@ app.get('/', (req, res) => {
               gap: 12px;
             }
             .tab-btn:hover { background: #334155; }
-            .tab-btn.active { 
-              background: #0284c7; 
-              color: #fff; 
-              box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
-            }
-            
-            /* Container & Panes */
+            .tab-btn.active { background: #0284c7; color: #fff; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); }
             .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
             .tab-pane { display: none; }
             .tab-pane.active { display: block; }
-
-            /* Module 1: Overview */
             .kpi-grid {
               display: grid;
               grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -299,9 +259,7 @@ app.get('/', (req, res) => {
             .kpi-value { font-size: 28px; font-weight: bold; color: #f8fafc; margin-bottom: 8px; }
             .kpi-change { font-size: 13px; font-weight: 600; display: inline-block; padding: 4px 8px; border-radius: 6px; }
             .pos { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-            .neg { background: rgba(239, 68, 68, 0.2); color: #f87171; }
             .neutral { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
-            
             .section-title { font-size: 18px; margin: 20px 0 12px 0; color: #e2e8f0; }
             .placeholder-box {
               background: #1e293b;
@@ -311,8 +269,6 @@ app.get('/', (req, res) => {
               text-align: center;
               color: #64748b;
             }
-
-            /* Forms & Cards */
             .form-card {
               background: #1e293b;
               padding: 20px;
@@ -341,8 +297,6 @@ app.get('/', (req, res) => {
               cursor: pointer;
             }
             button.action-btn:hover { background: #0ea5e9; }
-
-            /* Contents List */
             .content-list { display: flex; flex-direction: column; gap: 12px; }
             .content-item {
               background: #1e293b;
@@ -360,46 +314,27 @@ app.get('/', (req, res) => {
             .badge.scheduled { background: rgba(234, 179, 8, 0.2); color: #facc15; }
             .badge.draft { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
             .content-seo { font-size: 13px; color: #94a3b8; }
-
-            /* Social Status */
-            .social-header {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-bottom: 12px;
-            }
-            .status-badge {
-              font-size: 12px;
-              padding: 4px 10px;
-              border-radius: 20px;
-              font-weight: bold;
-            }
+            .social-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+            .status-badge { font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: bold; }
             .status-connected { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; }
             .status-disconnected { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
-
-            @media (max-width: 600px) {
-              .kpi-grid { grid-template-columns: 1fr; }
-            }
+            @media (max-width: 600px) { .kpi-grid { grid-template-columns: 1fr; } }
         </style>
     </head>
     <body>
-        <!-- Header -->
         <div class="header">
             <button class="hamburger" onclick="toggleSidebar()" aria-label="Open Menu">☰</button>
             <h1>Creator Dashboard</h1>
             <span class="header-badge">Welcome!</span>
         </div>
 
-        <!-- Overlay -->
         <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-        <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <span class="sidebar-title">Modules Menu</span>
                 <button class="close-btn" onclick="toggleSidebar()">✕</button>
             </div>
-            
             <button class="tab-btn active" onclick="switchTab('overview', this)">📊 1. Overview</button>
             <button class="tab-btn" onclick="switchTab('contents', this)">📝 2. Contents</button>
             <button class="tab-btn" onclick="alert('Module 3: Analytics coming soon!')">📈 3. Analytics</button>
@@ -409,20 +344,15 @@ app.get('/', (req, res) => {
         </div>
 
         <div class="container">
-            <!-- TAB 1: OVERVIEW -->
             <div id="tab-overview" class="tab-pane active">
                 <h2 class="section-title" style="margin-top:0;">Main KPI (Real-Time)</h2>
-                <div id="kpi-container" class="kpi-grid">
-                    <!-- Loaded via API -->
-                </div>
-
+                <div id="kpi-container" class="kpi-grid"></div>
                 <h2 class="section-title">Previous Period Trend</h2>
                 <div class="placeholder-box">
                     💡 Connect your accounts in the <strong>Settings (API)</strong> section to import real metrics!
                 </div>
             </div>
 
-            <!-- TAB 2: CONTENTS -->
             <div id="tab-contents" class="tab-pane">
                 <div class="form-card">
                     <h2 class="section-title" style="margin-top:0;">⚡ Quick Editor / New Content</h2>
@@ -442,14 +372,10 @@ app.get('/', (req, res) => {
                         <button class="action-btn" onclick="addContent()">+ Add to Content Hub</button>
                     </div>
                 </div>
-
                 <h2 class="section-title">My Contents</h2>
-                <div id="contents-list" class="content-list">
-                    <!-- Dynamic content list -->
-                </div>
+                <div id="contents-list" class="content-list"></div>
             </div>
 
-            <!-- TAB 6: SETTINGS & SOCIAL API -->
             <div id="tab-settings" class="tab-pane">
                 <h2 class="section-title" style="margin-top:0;">🔗 Social Profile API Integration</h2>
                 <p style="color:#94a3b8; font-size:14px; margin-bottom:20px;">
@@ -460,7 +386,6 @@ app.get('/', (req, res) => {
         </div>
 
         <script>
-            // Sidebar Toggle Function
             function toggleSidebar() {
                 const sidebar = document.getElementById('sidebar');
                 const overlay = document.getElementById('overlay');
@@ -468,32 +393,24 @@ app.get('/', (req, res) => {
                 overlay.classList.toggle('active');
             }
 
-            // Tab Switcher + Auto-close menu on mobile
             function switchTab(tabName, btnElement) {
                 document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
                 document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-                
                 document.getElementById('tab-' + tabName).classList.add('active');
                 btnElement.classList.add('active');
-                
                 const sidebar = document.getElementById('sidebar');
-                if (sidebar.classList.contains('open')) {
-                    toggleSidebar();
-                }
-
+                if (sidebar.classList.contains('open')) { toggleSidebar(); }
                 if (tabName === 'overview') loadOverview();
                 if (tabName === 'contents') loadContents();
                 if (tabName === 'settings') loadSettings();
             }
 
-            // --- OVERVIEW ---
             async function loadOverview() {
                 try {
                     const response = await fetch('/api/overview');
                     const data = await response.json();
                     const container = document.getElementById('kpi-container');
                     container.innerHTML = '';
-                    
                     data.forEach(item => {
                         container.innerHTML += 
                           '<div class="kpi-card">' +
@@ -507,21 +424,107 @@ app.get('/', (req, res) => {
                 }
             }
 
-            // --- CONTENTS ---
             async function loadContents() {
                 try {
                     const response = await fetch('/api/contents');
                     const data = await response.json();
                     const container = document.getElementById('contents-list');
                     container.innerHTML = '';
-                    
                     if (data.length === 0) {
                         container.innerHTML = '<div class="placeholder-box">No contents added yet. Add one above!</div>';
                         return;
                     }
-
                     data.forEach(item => {
                         const statusClass = item.status.toLowerCase();
                         container.innerHTML += 
                           '<div class="content-item">' +
-                  
+                              '<div class="content-header">' +
+                                  '<span class="content-title">' + item.title + '</span>' +
+                                  '<span class="badge ' + statusClass + '">' + item.status + '</span>' +
+                              '</div>' +
+                              '<div style="font-size: 13px; color: #38bdf8;">Type: ' + item.type + '</div>' +
+                              '<div class="content-seo">🏷️ Tags: ' + (item.seo_tags || 'None') + '</div>' +
+                          '</div>';
+                    });
+                } catch (err) {
+                    document.getElementById('contents-list').innerText = 'Error loading contents.';
+                }
+            }
+
+            async function addContent() {
+                const title = document.getElementById('cTitle').value;
+                const type = document.getElementById('cType').value;
+                const status = document.getElementById('cStatus').value;
+                const seo_tags = document.getElementById('cTags').value;
+                if (!title.trim()) { alert('Please enter a valid title'); return; }
+                try {
+                    const response = await fetch('/api/contents', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title, type, status, seo_tags })
+                    });
+                    const resData = await response.json();
+                    if (resData.success) {
+                        document.getElementById('cTitle').value = '';
+                        document.getElementById('cTags').value = '';
+                        loadContents();
+                    } else { alert('Error saving content'); }
+                } catch (err) { alert('Server connection error'); }
+            }
+
+            async function loadSettings() {
+                try {
+                    const response = await fetch('/api/settings/socials');
+                    const data = await response.json();
+                    const container = document.getElementById('social-integrations-list');
+                    container.innerHTML = '';
+                    data.forEach(item => {
+                        const isConn = item.is_connected;
+                        const statusText = isConn ? 'Connected' : 'Disconnected';
+                        const statusClass = isConn ? 'status-connected' : 'status-disconnected';
+                        container.innerHTML += 
+                          '<div class="form-card">' +
+                              '<div class="social-header">' +
+                                  '<strong>' + item.platform + '</strong>' +
+                                  '<span class="status-badge ' + statusClass + '">' + statusText + '</span>' +
+                              '</div>' +
+                              '<div class="form-group">' +
+                                  '<input type="text" id="acc-' + item.platform + '" placeholder="Account ID / Username" value="' + (item.account_id || '') + '">' +
+                                  '<input type="password" id="key-' + item.platform + '" placeholder="API Key / Access Token" value="' + (item.api_key || '') + '">' +
+                                  '<button class="action-btn" onclick="saveSocial(\'' + item.platform + '\')">Save & Update ' + item.platform + '</button>' +
+                              '</div>' +
+                          '</div>';
+                    });
+                } catch (err) {
+                    document.getElementById('social-integrations-list').innerText = 'Error loading settings.';
+                }
+            }
+
+            async function saveSocial(platform) {
+                const account_id = document.getElementById('acc-' + platform).value;
+                const api_key = document.getElementById('key-' + platform).value;
+                try {
+                    const response = await fetch('/api/settings/socials', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ platform, account_id, api_key })
+                    });
+                    const resData = await response.json();
+                    if (resData.success) {
+                        alert('Settings saved for ' + platform + '!');
+                        loadSettings();
+                    } else { alert('Error saving settings.'); }
+                } catch (err) { alert('Connection error.'); }
+            }
+
+            loadOverview();
+            loadContents();
+        </script>
+    </body>
+    </html>
+  `);
+});
+
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
+});
