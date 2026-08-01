@@ -161,7 +161,7 @@
           cursor: pointer;
           width: 100%;
         }
-        button.action-btn:hover { background: #0ea5e9; }
+        button.action-btn:hover { opacity: 0.9; }
         
         .content-list { display: flex; flex-direction: column; gap: 12px; }
         .content-item {
@@ -208,66 +208,65 @@
 </head>
 <body>
     <div class="header">
-        <button class="hamburger" id="hamburger-btn" aria-label="Open Menu">☰</button>
+        <button class="hamburger" id="hamburger-btn" aria-label="Apri Menu">☰</button>
         <h1>Creator Dashboard</h1>
-        <span class="header-badge">Welcome!</span>
+        <span class="header-badge">Benvenuto!</span>
     </div>
 
     <div class="sidebar-overlay" id="overlay"></div>
 
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <span class="sidebar-title">Navigation Menu</span>
+            <span class="sidebar-title">Menu Navigazione</span>
             <button class="close-btn" id="close-sidebar-btn">✕</button>
         </div>
         <button class="tab-btn active" data-tab="overview">📊 1. Overview</button>
-        <button class="tab-btn" data-tab="contents">📝 2. Contents</button>
+        <button class="tab-btn" data-tab="contents">📝 2. Contenuti</button>
         <button class="tab-btn" data-tab="settings">⚙️ 3. Settings (API)</button>
     </div>
 
     <div class="container">
         <div id="tab-overview" class="tab-pane active">
-            <h2 class="section-title" style="margin-top:0;">Main KPIs (Real-Time)</h2>
+            <h2 class="section-title" style="margin-top:0;">KPI Principali (Tempo Reale)</h2>
             <div id="kpi-container" class="kpi-grid"></div>
-            <h2 class="section-title">Previous Period Trend</h2>
+            <h2 class="section-title">Andamento Periodo Precedente</h2>
             <div class="placeholder-box">
-                📈 Growth chart (Views and Revenue) will be inserted here in the next step.
+                📈 Qui inseriremo il grafico di crescita (Visualizzazioni e Ricavi) nel prossimo step.
             </div>
         </div>
 
         <div id="tab-contents" class="tab-pane">
             <div class="form-card">
-                <h2 class="section-title" style="margin-top:0;">⚡ Add Content</h2>
+                <h2 class="section-title" style="margin-top:0;">⚡ Aggiungi Contenuto</h2>
                 <div class="form-group">
-                    <input type="text" id="cTitle" placeholder="Content Title">
+                    <input type="text" id="cTitle" placeholder="Titolo del contenuto">
                     <select id="cType">
                         <option value="Video">YouTube Video</option>
                         <option value="Post">Social Post</option>
                         <option value="Live">Live Stream</option>
                     </select>
                     <select id="cStatus">
-                        <option value="Published">Published</option>
-                        <option value="Scheduled">Scheduled</option>
-                        <option value="Draft">Draft</option>
+                        <option value="Published">Pubblicato</option>
+                        <option value="Scheduled">Programmato</option>
+                        <option value="Draft">Bozza</option>
                     </select>
-                    <input type="text" id="cTags" placeholder="SEO Tags (e.g., gaming, tutorial)">
-                    <button class="action-btn" id="save-content-btn">+ Save Content</button>
+                    <input type="text" id="cTags" placeholder="Tag SEO (es. gaming, tutorial)">
+                    <button class="action-btn" id="save-content-btn">+ Salva Contenuto</button>
                 </div>
             </div>
-            <h2 class="section-title">My Contents</h2>
+            <h2 class="section-title">I Miei Contenuti</h2>
             <div id="contents-list" class="content-list"></div>
         </div>
 
         <div id="tab-settings" class="tab-pane">
-            <h2 class="section-title" style="margin-top:0;">🔗 Social API Integrations</h2>
+            <h2 class="section-title" style="margin-top:0;">🔗 Integrazione API Social</h2>
             <p style="color:#94a3b8; font-size:14px; margin-bottom:20px;">
-                Connect your accounts to synchronize data and real-time metrics.
+                Collega i tuoi account per sincronizzare i dati e le metriche in tempo reale.
             </p>
             <div id="social-integrations-list"></div>
         </div>
     </div>
-
-    <script>
+        <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('overlay');
@@ -304,7 +303,7 @@
                 const container = document.getElementById('kpi-container');
                 container.innerHTML = '';
                 if (!Array.isArray(data)) {
-                    container.innerHTML = '<div class="placeholder-box">Error loading metrics.</div>';
+                    container.innerHTML = '<div class="placeholder-box">Errore caricamento metriche.</div>';
                     return;
                 }
                 data.forEach(item => {
@@ -318,7 +317,7 @@
                       '</div>';
                 });
             } catch (err) {
-                document.getElementById('kpi-container').innerText = 'Connection error.';
+                document.getElementById('kpi-container').innerText = 'Errore di connessione.';
             }
         }
 
@@ -329,7 +328,7 @@
                 const container = document.getElementById('contents-list');
                 container.innerHTML = '';
                 if (!Array.isArray(data) || data.length === 0) {
-                    container.innerHTML = '<div class="placeholder-box">No content added yet.</div>';
+                    container.innerHTML = '<div class="placeholder-box">Nessun contenuto inserito.</div>';
                     return;
                 }
                 data.forEach(item => {
@@ -340,12 +339,12 @@
                               '<span class="content-title">' + item.title + '</span>' +
                               '<span class="badge ' + statusClass + '">' + item.status + '</span>' +
                           '</div>' +
-                          '<div style="font-size: 13px; color: #38bdf8;">Type: ' + item.type + '</div>' +
-                          '<div class="content-seo">🏷️ Tags: ' + (item.seo_tags || 'None') + '</div>' +
+                          '<div style="font-size: 13px; color: #38bdf8;">Tipo: ' + item.type + '</div>' +
+                          '<div class="content-seo">🏷️ Tag: ' + (item.seo_tags || 'Nessuno') + '</div>' +
                       '</div>';
                 });
             } catch (err) {
-                document.getElementById('contents-list').innerText = 'Error loading contents.';
+                document.getElementById('contents-list').innerText = 'Errore caricamento contenuti.';
             }
         }
 
@@ -354,7 +353,7 @@
             const type = document.getElementById('cType').value;
             const status = document.getElementById('cStatus').value;
             const seo_tags = document.getElementById('cTags').value;
-            if (!title.trim()) { alert('Please enter a valid title'); return; }
+            if (!title.trim()) { alert('Inserisci un titolo valido'); return; }
             try {
                 const response = await fetch('/api/contents', {
                     method: 'POST',
@@ -366,8 +365,8 @@
                     document.getElementById('cTitle').value = '';
                     document.getElementById('cTags').value = '';
                     loadContents();
-                } else { alert('Save error'); }
-            } catch (err) { alert('Connection error'); }
+                } else { alert('Errore salvataggio'); }
+            } catch (err) { alert('Errore di connessione'); }
         });
 
         async function loadSettings() {
@@ -379,7 +378,7 @@
                 
                 data.forEach(item => {
                     const isConn = item.is_connected === true || item.is_connected === 1 || item.is_connected === 'true';
-                    const statusText = isConn ? 'Connected' : 'Disconnected';
+                    const statusText = isConn ? 'Connesso' : 'Disconnesso';
                     const statusClass = isConn ? 'status-connected' : 'status-disconnected';
                     
                     const card = document.createElement('div');
@@ -391,16 +390,15 @@
                         if (isConn) {
                             card.innerHTML = 
                               '<div class="social-header"><strong>YouTube</strong><span class="status-badge ' + statusClass + '">' + statusText + '</span></div>' +
-                              '<p style="color:#94a3b8; font-size:13px; margin-bottom:12px;">Official Google synchronization active.</p>' +
-                              '<button class="action-btn disconnect-btn" data-platform="YouTube" style="background: #ef4444; color: #fff;">Disconnect</button>';
+                              '<p style="color:#94a3b8; font-size:13px; margin-bottom:12px;">Sincronizzazione Google ufficiale attiva.</p>' +
+                              '<button class="action-btn disconnect-btn" data-platform="YouTube" style="background: #ef4444; color: #fff;">Disconnetti</button>';
                         } else {
                             card.innerHTML = 
                               '<div class="social-header"><strong>YouTube</strong><span class="status-badge ' + statusClass + '">' + statusText + '</span></div>' +
-                              '<p style="color:#94a3b8; font-size:13px; margin-bottom:12px;">Connect channel via official Google authentication.</p>' +
-                              '<a href="/auth/google" class="google-signin-btn">' + googleLogoSvg + '<span>Sign in with Google</span></a>';
+                              '<p style="color:#94a3b8; font-size:13px; margin-bottom:12px;">Collega il canale tramite l\'autenticazione ufficiale Google.</p>' +
+                              '<a href="/auth/google" class="google-signin-btn">' + googleLogoSvg + '<span>Accedi con Google</span></a>';
                         }
                     } else {
-                        // Colori brand specifici per le altre piattaforme (Twitch: viola, Instagram: gradiente rosa/arancio, TikTok: nero/grigio scuro)
                         let brandBg = '#38bdf8';
                         if (item.platform === 'Twitch') brandBg = '#9146FF';
                         else if (item.platform === 'Instagram') brandBg = 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)';
@@ -409,17 +407,64 @@
                         if (isConn) {
                             card.innerHTML = 
                               '<div class="social-header"><strong>' + item.platform + '</strong><span class="status-badge ' + statusClass + '">' + statusText + '</span></div>' +
-                              '<p style="color:#94a3b8; font-size:13px; margin-bottom:12px;">Account connected successfully.</p>' +
-                              '<button class="action-btn disconnect-btn" data-platform="' + item.platform + '" style="background: #ef4444; color: #fff;">Disconnect</button>';
+                              '<p style="color:#94a3b8; font-size:13px; margin-bottom:12px;">Account collegato con successo.</p>' +
+                              '<button class="action-btn disconnect-btn" data-platform="' + item.platform + '" style="background: #ef4444; color: #fff;">Disconnetti</button>';
                         } else {
                             card.innerHTML = 
                               '<div class="social-header"><strong>' + item.platform + '</strong><span class="status-badge ' + statusClass + '">' + statusText + '</span></div>' +
                               '<div class="form-group">' +
                                   '<input type="text" id="acc-' + item.platform + '" placeholder="Account ID / Username" value="' + (item.account_id || '') + '">' +
                                   '<input type="password" id="key-' + item.platform + '" placeholder="API Key / Access Token" value="' + (item.api_key || '') + '">' +
-                                  '<button class="action-btn save-social-btn" data-platform="' + item.platform + '" style="background: ' + brandBg + '; color: #fff;">Save ' + item.platform + '</button>' +
+                                  '<button class="action-btn save-social-btn" data-platform="' + item.platform + '" style="background: ' + brandBg + '; color: #fff;">Salva ' + item.platform + '</button>' +
                               '</div>';
                         }
                     }
                     container.appendChild(card);
-                
+                });
+
+                document.querySelectorAll('.save-social-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const platform = btn.getAttribute('data-platform');
+                        const account_id = document.getElementById('acc-' + platform).value;
+                        const api_key = document.getElementById('key-' + platform).value;
+                        try {
+                            const response = await fetch('/api/settings/socials', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ platform, account_id, api_key })
+                            });
+                            const resData = await response.json();
+                            if (resData.success) {
+                                alert('Impostazioni salvate per ' + platform + '!');
+                                loadSettings();
+                            } else { alert('Errore durante il salvataggio.'); }
+                        } catch (err) { alert('Errore di connessione.'); }
+                    });
+                });
+
+                document.querySelectorAll('.disconnect-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const platform = btn.getAttribute('data-platform');
+                        try {
+                            const response = await fetch('/api/settings/disconnect', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ platform })
+                            });
+                            const resData = await response.json();
+                            if (resData.success) {
+                                loadSettings();
+                            } else { alert('Errore durante la disconnessione.'); }
+                        } catch (err) { alert('Errore di connessione.'); }
+                    });
+                });
+            } catch (err) {
+                document.getElementById('social-integrations-list').innerText = 'Errore caricamento impostazioni.';
+            }
+        }
+
+        loadOverview();
+        loadContents();
+    </script>
+</body>
+</html>
