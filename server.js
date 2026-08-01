@@ -46,20 +46,15 @@ async function initDb() {
       )
     `);
     
-    // Popolamento KPI iniziali su "--"
+    // Popolamento KPI iniziali (con valori di default o "--" se disconnessi)
     const resKpi = await pool.query('SELECT COUNT(*) FROM kpi_metrics');
     if (parseInt(resKpi.rows[0].count) === 0) {
       await pool.query(`
         INSERT INTO kpi_metrics (title, value, change_percentage, category) VALUES 
-        ('Visualizzazioni Totali', '--', '--', 'traffic'),
-        ('Nuovi Iscritti', '--', '--', 'audience'),
-        ('Entrate Stimate', '--', '--', 'monetization'),
-        ('Engagement Rate', '--', '--', 'engagement')
-      `);
-    } else {
-      await pool.query(`
-        UPDATE kpi_metrics 
-        SET value = '--', change_percentage = '--'
+        ('Total Views', '142.5K', '+12.4% vs last month', 'traffic'),
+        ('New Subscribers', '1,280', '+8.1% vs last month', 'audience'),
+        ('Estimated Revenue', '€ 845,00', '+15.3% vs last month', 'monetization'),
+        ('Engagement Rate', '6.8%', '+0.5% vs last month', 'engagement')
       `);
     }
 
@@ -75,20 +70,34 @@ async function initDb() {
       `);
     }
   } catch (err) {
-    console.error("Errore inizializzazione database:", err);
+    console.error("Database initialization error:", err);
   }
 }
 initDb();
 
 // ==========================================
-// API REST
+// REST API
 // ==========================================
 app.get('/api/overview', async (req, res) => {
   try {
+    // Controlla se ci sono account social connessi per decidere se mostrare i dati o '--'
+    const socialCheck = await pool.query('SELECT COUNT(*) FROM social_integrations WHERE is_connected = true');
+    const isConnected = parseInt(socialCheck.rows[0].count) > 0;
+
     const result = await pool.query('SELECT * FROM kpi_metrics ORDER BY id ASC');
+    
+    if (!isConnected) {
+      const maskedRows = result.rows.map(row => ({
+        ...row,
+        value: '--',
+        change_percentage: '-- vs last month'
+      }));
+      return res.json(maskedRows);
+    }
+
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ error: "Errore API Overview" });
+    res.status(500).json({ error: "Overview API Error" });
   }
 });
 
@@ -97,7 +106,7 @@ app.get('/api/contents', async (req, res) => {
     const result = await pool.query('SELECT * FROM contents ORDER BY id DESC');
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ error: "Errore API Contents" });
+    res.status(500).json({ error: "Contents API Error" });
   }
 });
 
@@ -110,7 +119,7 @@ app.post('/api/contents', async (req, res) => {
     );
     res.json({ success: true, item: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ error: "Errore salvataggio contenuto" });
+    res.status(500).json({ error: "Error saving content" });
   }
 });
 
@@ -119,7 +128,7 @@ app.get('/api/settings/socials', async (req, res) => {
     const result = await pool.query('SELECT * FROM social_integrations ORDER BY id ASC');
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ error: "Errore API Settings" });
+    res.status(500).json({ error: "Settings API Error" });
   }
 });
 
@@ -135,17 +144,17 @@ app.post('/api/settings/socials', async (req, res) => {
     );
     res.json({ success: true, item: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ error: "Errore salvataggio API Social" });
+    res.status(500).json({ error: "Error saving social API settings" });
   }
 });
 
 // ==========================================
-// FRONTEND INTEGRATO CON SIDEBAR LATERALE
+// INTEGRATED FRONTEND (GLOBAL ENGLISH)
 // ==========================================
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
-    <html lang="it">
+    <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -160,7 +169,7 @@ app.get('/', (req, res) => {
               overflow-x: hidden;
             }
             
-            /* Header principale con Hamburger e Z-Index corretto */
+            /* Header */
             .header {
               background: #1e293b;
               padding: 16px 20px;
@@ -184,7 +193,7 @@ app.get('/', (req, res) => {
             .header h1 { font-size: 18px; color: #38bdf8; flex-grow: 1; }
             .header-badge { font-size: 13px; color: #94a3b8; }
             
-            /* Sfondo oscurato quando si apre il menu */
+            /* Overlay */
             .sidebar-overlay {
               position: fixed;
               top: 0;
@@ -203,7 +212,7 @@ app.get('/', (req, res) => {
               visibility: visible;
             }
 
-            /* Menu Laterale a Scomparsa (Sinistra) */
+            /* Sidebar */
             .sidebar {
               position: fixed;
               top: 0;
@@ -244,7 +253,7 @@ app.get('/', (req, res) => {
               cursor: pointer;
             }
             
-            /* Pulsanti del menu laterale */
+            /* Sidebar Buttons */
             .tab-btn {
               background: transparent;
               color: #cbd5e1;
@@ -267,12 +276,12 @@ app.get('/', (req, res) => {
               box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
             }
             
-            /* Contenitore Principale e Schede */
+            /* Container & Panes */
             .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
             .tab-pane { display: none; }
             .tab-pane.active { display: block; }
 
-            /* Modulo 1: Overview */
+            /* Module 1: Overview */
             .kpi-grid {
               display: grid;
               grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -303,7 +312,7 @@ app.get('/', (req, res) => {
               color: #64748b;
             }
 
-            /* Moduli 2 & 6: Form e Card */
+            /* Forms & Cards */
             .form-card {
               background: #1e293b;
               padding: 20px;
@@ -333,7 +342,7 @@ app.get('/', (req, res) => {
             }
             button.action-btn:hover { background: #0ea5e9; }
 
-            /* Modulo 2: Lista Contenuti */
+            /* Contents List */
             .content-list { display: flex; flex-direction: column; gap: 12px; }
             .content-item {
               background: #1e293b;
@@ -347,12 +356,12 @@ app.get('/', (req, res) => {
             .content-header { display: flex; justify-content: space-between; align-items: flex-start; }
             .content-title { font-weight: bold; font-size: 16px; color: #fff; }
             .badge { font-size: 12px; padding: 4px 8px; border-radius: 6px; font-weight: 600; text-transform: uppercase; }
-            .badge.pubblicato { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-            .badge.programmato { background: rgba(234, 179, 8, 0.2); color: #facc15; }
-            .badge.bozza { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
+            .badge.published { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+            .badge.scheduled { background: rgba(234, 179, 8, 0.2); color: #facc15; }
+            .badge.draft { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
             .content-seo { font-size: 13px; color: #94a3b8; }
 
-            /* Modulo 6: Status API */
+            /* Social Status */
             .social-header {
               display: flex;
               justify-content: space-between;
@@ -374,84 +383,84 @@ app.get('/', (req, res) => {
         </style>
     </head>
     <body>
-        <!-- Header Fisso con Pulsante Hamburger -->
+        <!-- Header -->
         <div class="header">
-            <button class="hamburger" onclick="toggleSidebar()" aria-label="Apri Menu">☰</button>
-            <h1>🚀 Creator Dashboard</h1>
-            <span class="header-badge">Benvenuto!</span>
+            <button class="hamburger" onclick="toggleSidebar()" aria-label="Open Menu">☰</button>
+            <h1>Creator Dashboard</h1>
+            <span class="header-badge">Welcome!</span>
         </div>
 
-        <!-- Overlay Sfondo (per chiudere il menu toccando fuori) -->
+        <!-- Overlay -->
         <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-        <!-- Sidebar Laterale a Scomparsa -->
+        <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <span class="sidebar-title">Menu Moduli</span>
+                <span class="sidebar-title">Modules Menu</span>
                 <button class="close-btn" onclick="toggleSidebar()">✕</button>
             </div>
             
             <button class="tab-btn active" onclick="switchTab('overview', this)">📊 1. Overview</button>
-            <button class="tab-btn" onclick="switchTab('contents', this)">📝 2. Contenuti</button>
-            <button class="tab-btn" onclick="alert('Modulo 3: Analytics in arrivo!')">📈 3. Analytics</button>
-            <button class="tab-btn" onclick="alert('Modulo 4: Monetizzazione in arrivo!')">💰 4. Revenue</button>
-            <button class="tab-btn" onclick="alert('Modulo 5: Community in arrivo!')">💬 5. Community</button>
+            <button class="tab-btn" onclick="switchTab('contents', this)">📝 2. Contents</button>
+            <button class="tab-btn" onclick="alert('Module 3: Analytics coming soon!')">📈 3. Analytics</button>
+            <button class="tab-btn" onclick="alert('Module 4: Revenue coming soon!')">💰 4. Revenue</button>
+            <button class="tab-btn" onclick="alert('Module 5: Community coming soon!')">💬 5. Community</button>
             <button class="tab-btn" onclick="switchTab('settings', this)">⚙️ 6. Settings (API)</button>
         </div>
 
         <div class="container">
             <!-- TAB 1: OVERVIEW -->
             <div id="tab-overview" class="tab-pane active">
-                <h2 class="section-title" style="margin-top:0;">KPI Principali (Tempo Reale)</h2>
+                <h2 class="section-title" style="margin-top:0;">Main KPI (Real-Time)</h2>
                 <div id="kpi-container" class="kpi-grid">
-                    <!-- I KPI vuoti verranno caricati da API -->
+                    <!-- Loaded via API -->
                 </div>
 
-                <h2 class="section-title">Andamento Periodo Precedente</h2>
+                <h2 class="section-title">Previous Period Trend</h2>
                 <div class="placeholder-box">
-                    💡 Collega i tuoi account nella sezione <strong>Settings (API)</strong> per importare le metriche reali!
+                    💡 Connect your accounts in the <strong>Settings (API)</strong> section to import real metrics!
                 </div>
             </div>
 
-            <!-- TAB 2: CONTENUTI -->
+            <!-- TAB 2: CONTENTS -->
             <div id="tab-contents" class="tab-pane">
                 <div class="form-card">
-                    <h2 class="section-title" style="margin-top:0;">⚡ Editor Rapido / Nuovo Contenuto</h2>
+                    <h2 class="section-title" style="margin-top:0;">⚡ Quick Editor / New Content</h2>
                     <div class="form-group">
-                        <input type="text" id="cTitle" placeholder="Titolo del contenuto">
+                        <input type="text" id="cTitle" placeholder="Content title">
                         <select id="cType">
-                            <option value="Video">Video YouTube</option>
-                            <option value="Post">Post Social</option>
-                            <option value="Live">Streaming Live</option>
+                            <option value="Video">YouTube Video</option>
+                            <option value="Post">Social Post</option>
+                            <option value="Live">Live Stream</option>
                         </select>
                         <select id="cStatus">
-                            <option value="Pubblicato">Pubblicato</option>
-                            <option value="Programmato">Programmato</option>
-                            <option value="Bozza">Bozza</option>
+                            <option value="Published">Published</option>
+                            <option value="Scheduled">Scheduled</option>
+                            <option value="Draft">Draft</option>
                         </select>
-                        <input type="text" id="cTags" placeholder="Tag SEO (es. gaming, tutorial)">
-                        <button class="action-btn" onclick="addContent()">+ Aggiungi al Content Hub</button>
+                        <input type="text" id="cTags" placeholder="SEO Tags (e.g. gaming, tutorial)">
+                        <button class="action-btn" onclick="addContent()">+ Add to Content Hub</button>
                     </div>
                 </div>
 
-                <h2 class="section-title">I Miei Contenuti</h2>
+                <h2 class="section-title">My Contents</h2>
                 <div id="contents-list" class="content-list">
-                    <!-- Lista contenuti vuota gestita dinamicamente -->
+                    <!-- Dynamic content list -->
                 </div>
             </div>
 
-            <!-- TAB 6: IMPOSTAZIONI & API SOCIAL -->
+            <!-- TAB 6: SETTINGS & SOCIAL API -->
             <div id="tab-settings" class="tab-pane">
-                <h2 class="section-title" style="margin-top:0;">🔗 Collegamento API Profili Social</h2>
+                <h2 class="section-title" style="margin-top:0;">🔗 Social Profile API Integration</h2>
                 <p style="color:#94a3b8; font-size:14px; margin-bottom:20px;">
-                    Inserisci l'ID del tuo canale o account e la chiave API (o OAuth Access Token) per abilitare la sincronizzazione delle metriche e dei KPI.
+                    Enter your channel or account ID and API key (or OAuth Access Token) to enable metrics and KPI synchronization.
                 </p>
                 <div id="social-integrations-list"></div>
             </div>
         </div>
 
         <script>
-            // Apertura/Chiusura Sidebar
+            // Sidebar Toggle Function
             function toggleSidebar() {
                 const sidebar = document.getElementById('sidebar');
                 const overlay = document.getElementById('overlay');
@@ -459,7 +468,7 @@ app.get('/', (req, res) => {
                 overlay.classList.toggle('active');
             }
 
-            // Cambio Scheda + Chiusura automatica del menu su mobile
+            // Tab Switcher + Auto-close menu on mobile
             function switchTab(tabName, btnElement) {
                 document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
                 document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -489,16 +498,16 @@ app.get('/', (req, res) => {
                         container.innerHTML += 
                           '<div class="kpi-card">' +
                               '<div class="kpi-title">' + item.title + '</div>' +
-                              '<div class="kpi-value">--</div>' +
-                              '<div class="kpi-change neutral">-- vs mese scorso</div>' +
+                              '<div class="kpi-value">' + item.value + '</div>' +
+                              '<div class="kpi-change pos">' + item.change_percentage + '</div>' +
                           '</div>';
                     });
                 } catch (err) {
-                    document.getElementById('kpi-container').innerText = 'Errore nel caricamento delle metriche.';
+                    document.getElementById('kpi-container').innerText = 'Error loading metrics.';
                 }
             }
 
-            // --- CONTENUTI ---
+            // --- CONTENTS ---
             async function loadContents() {
                 try {
                     const response = await fetch('/api/contents');
@@ -507,7 +516,7 @@ app.get('/', (req, res) => {
                     container.innerHTML = '';
                     
                     if (data.length === 0) {
-                        container.innerHTML = '<div class="placeholder-box">Nessun contenuto inserito. Aggiungine uno sopra!</div>';
+                        container.innerHTML = '<div class="placeholder-box">No contents added yet. Add one above!</div>';
                         return;
                     }
 
@@ -515,111 +524,4 @@ app.get('/', (req, res) => {
                         const statusClass = item.status.toLowerCase();
                         container.innerHTML += 
                           '<div class="content-item">' +
-                              '<div class="content-header">' +
-                                  '<span class="content-title">' + item.title + '</span>' +
-                                  '<span class="badge ' + statusClass + '">' + item.status + '</span>' +
-                              '</div>' +
-                              '<div style="font-size: 13px; color: #38bdf8;">Tipologia: ' + item.type + '</div>' +
-                              '<div class="content-seo">🏷️ Tag: ' + (item.seo_tags || 'Nessuno') + '</div>' +
-                          '</div>';
-                    });
-                } catch (err) {
-                    document.getElementById('contents-list').innerText = 'Errore nel caricamento dei contenuti.';
-                }
-            }
-
-            async function addContent() {
-                const title = document.getElementById('cTitle').value;
-                const type = document.getElementById('cType').value;
-                const status = document.getElementById('cStatus').value;
-                const seo_tags = document.getElementById('cTags').value;
-
-                if (!title.trim()) {
-                    alert('Inserisci un titolo valido');
-                    return;
-                }
-
-                try {
-                    const response = await fetch('/api/contents', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ title, type, status, seo_tags })
-                    });
-                    const resData = await response.json();
-                    if (resData.success) {
-                        document.getElementById('cTitle').value = '';
-                        document.getElementById('cTags').value = '';
-                        loadContents();
-                    } else {
-                        alert('Errore durante il salvataggio');
-                    }
-                } catch (err) {
-                    alert('Errore di connessione al server');
-                }
-            }
-
-            // --- SETTINGS (API SOCIAL) ---
-            async function loadSettings() {
-                try {
-                    const response = await fetch('/api/settings/socials');
-                    const data = await response.json();
-                    const container = document.getElementById('social-integrations-list');
-                    container.innerHTML = '';
-
-                    data.forEach(item => {
-                        const isConn = item.is_connected;
-                        const statusText = isConn ? 'Connesso' : 'Disconnesso';
-                        const statusClass = isConn ? 'status-connected' : 'status-disconnected';
-
-                        container.innerHTML += 
-                          '<div class="form-card">' +
-                              '<div class="social-header">' +
-                                  '<strong>' + item.platform + '</strong>' +
-                                  '<span class="status-badge ' + statusClass + '">' + statusText + '</span>' +
-                              '</div>' +
-                              '<div class="form-group">' +
-                                  '<input type="text" id="acc-' + item.platform + '" placeholder="Account ID / Username" value="' + (item.account_id || '') + '">' +
-                                  '<input type="password" id="key-' + item.platform + '" placeholder="API Key / Access Token" value="' + (item.api_key || '') + '">' +
-                                  '<button class="action-btn" onclick="saveSocial(\'' + item.platform + '\')">Salva e Aggiorna ' + item.platform + '</button>' +
-                              '</div>' +
-                          '</div>';
-                    });
-                } catch (err) {
-                    document.getElementById('social-integrations-list').innerText = 'Errore caricamento impostazioni.';
-                }
-            }
-
-            async function saveSocial(platform) {
-                const account_id = document.getElementById('acc-' + platform).value;
-                const api_key = document.getElementById('key-' + platform).value;
-
-                try {
-                    const response = await fetch('/api/settings/socials', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ platform, account_id, api_key })
-                    });
-                    const resData = await response.json();
-                    if (resData.success) {
-                        alert('Impostazioni salvate per ' + platform + '!');
-                        loadSettings();
-                    } else {
-                        alert('Errore nel salvataggio.');
-                    }
-                } catch (err) {
-                    alert('Errore di connessione.');
-                }
-            }
-
-            // Caricamento iniziale dei KPI all'avvio della pagina
-            loadOverview();
-            loadContents();
-        </script>
-    </body>
-    </html>
-  `);
-});
-
-app.listen(port, () => {
-  console.log(`Server in ascolto sulla porta ${port}`);
-});
+                  
