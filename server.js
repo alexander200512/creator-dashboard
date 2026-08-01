@@ -45,6 +45,11 @@ async function initDb() {
       )
     `);
     
+    await pool.query(`
+      ALTER TABLE social_integrations 
+      ADD COLUMN IF NOT EXISTS is_connected BOOLEAN DEFAULT false;
+    `);
+
     const resKpi = await pool.query('SELECT COUNT(*) FROM kpi_metrics');
     if (parseInt(resKpi.rows[0].count) === 0) {
       await pool.query(`
@@ -89,6 +94,7 @@ app.get('/api/overview', async (req, res) => {
     }
     res.json(result.rows);
   } catch (err) {
+    console.error("Overview error:", err);
     res.status(500).json({ error: "Overview API Error" });
   }
 });
@@ -326,24 +332,24 @@ app.get('/', (req, res) => {
     </head>
     <body>
         <div class="header">
-            <button class="hamburger" id="hamburger-btn" aria-label="Open Menu">☰</button>
+            <button class="hamburger" onclick="toggleSidebar()" aria-label="Open Menu">☰</button>
             <h1>Creator Dashboard</h1>
             <span class="header-badge">Welcome!</span>
         </div>
 
-        <div class="sidebar-overlay" id="overlay"></div>
+        <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <span class="sidebar-title">Modules Menu</span>
-                <button class="close-btn" id="close-sidebar-btn">✕</button>
+                <button class="close-btn" onclick="toggleSidebar()">✕</button>
             </div>
-            <button class="tab-btn active" data-tab="overview">📊 1. Overview</button>
-            <button class="tab-btn" data-tab="contents">📝 2. Contents</button>
+            <button class="tab-btn active" onclick="switchTab('overview', this)">📊 1. Overview</button>
+            <button class="tab-btn" onclick="switchTab('contents', this)">📝 2. Contents</button>
             <button class="tab-btn" onclick="alert('Module 3: Analytics coming soon!')">📈 3. Analytics</button>
             <button class="tab-btn" onclick="alert('Module 4: Revenue coming soon!')">💰 4. Revenue</button>
             <button class="tab-btn" onclick="alert('Module 5: Community coming soon!')">💬 5. Community</button>
-            <button class="tab-btn" data-tab="settings">⚙️ 6. Settings (API)</button>
+            <button class="tab-btn" onclick="switchTab('settings', this)">⚙️ 6. Settings (API)</button>
         </div>
 
         <div class="container">
@@ -396,17 +402,6 @@ app.get('/', (req, res) => {
                 overlay.classList.toggle('active');
             }
 
-            document.getElementById('hamburger-btn').addEventListener('click', toggleSidebar);
-            document.getElementById('close-sidebar-btn').addEventListener('click', toggleSidebar);
-            document.getElementById('overlay').addEventListener('click', toggleSidebar);
-
-            document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const tabName = btn.getAttribute('data-tab');
-                    switchTab(tabName, btn);
-                });
-            });
-
             function switchTab(tabName, btnElement) {
                 document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
                 document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -427,6 +422,10 @@ app.get('/', (req, res) => {
                     const data = await response.json();
                     const container = document.getElementById('kpi-container');
                     container.innerHTML = '';
+                    if (!Array.isArray(data)) {
+                        container.innerHTML = '<div class="placeholder-box">Error loading metrics.</div>';
+                        return;
+                    }
                     data.forEach(item => {
                         const isMasked = item.value === '--';
                         const changeClass = isMasked ? 'neutral' : 'pos';
@@ -448,7 +447,7 @@ app.get('/', (req, res) => {
                     const data = await response.json();
                     const container = document.getElementById('contents-list');
                     container.innerHTML = '';
-                    if (data.length === 0) {
+                    if (!Array.isArray(data) || data.length === 0) {
                         container.innerHTML = '<div class="placeholder-box">No contents added yet. Add one above!</div>';
                         return;
                     }
@@ -509,7 +508,7 @@ app.get('/', (req, res) => {
                               '<div class="form-group">' +
                                   '<input type="text" id="acc-' + item.platform + '" placeholder="Account ID / Username" value="' + (item.account_id || '') + '">' +
                                   '<input type="password" id="key-' + item.platform + '" placeholder="API Key / Access Token" value="' + (item.api_key || '') + '">' +
-                                  '<button class="action-btn" onclick="saveSocial(\\\'' + item.platform + '\\\')">Save & Update ' + item.platform + '</button>' +
+                                  '<button class="action-btn" onclick="saveSocial(\'' + item.platform + '\')">Save & Update ' + item.platform + '</button>' +
                               '</div>' +
                           '</div>';
                     });
@@ -541,4 +540,8 @@ app.get('/', (req, res) => {
     </body>
     </html>
   `);
+});
+
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });
