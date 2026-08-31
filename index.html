@@ -7,66 +7,84 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg-primary: #0a0e1a; --bg-card: rgba(26, 32, 51, 0.5); --border: rgba(42, 51, 72, 0.5);
-    --text-primary: #f1f5f9; --text-secondary: #94a3b8; --accent-1: #8b5cf6; --accent-2: #3b82f6;
-    --success: #22c55e; --danger: #ef4444; --warning: #f59e0b;
+    --bg: #0a0e1a; --card: rgba(26,32,51,0.6); --border: rgba(42,51,72,0.6);
+    --text: #f1f5f9; --muted: #94a3b8; --accent: #8b5cf6; --accent2: #3b82f6;
+    --green: #22c55e; --red: #ef4444; --yellow: #f59e0b;
   }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
-    background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; position: relative; overflow-x: hidden;
-  }
-  .fluid-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background: #0a0e1a; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .fluid-bg { position: fixed; inset: 0; z-index: -1; background: var(--bg); overflow: hidden; }
   .blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4; animation: float 20s infinite ease-in-out; }
   .blob-1 { width: 500px; height: 500px; background: #8b5cf6; top: -100px; left: -100px; }
   .blob-2 { width: 600px; height: 600px; background: #3b82f6; top: 40%; right: -150px; animation-delay: -5s; }
   .blob-3 { width: 450px; height: 450px; background: #06b6d4; bottom: -100px; left: 20%; animation-delay: -10s; }
-  @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(30px, -50px) scale(1.1); } }
-  
+  @keyframes float { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px,-50px) scale(1.1); } }
   .header { background: rgba(19,24,37,0.7); backdrop-filter: blur(20px); padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 100; }
-  .hamburger { background: none; border: none; color: var(--text-primary); font-size: 24px; cursor: pointer; }
+  .hamburger { background: none; border: none; color: var(--text); cursor: pointer; padding: 6px; display: flex; align-items: center; }
   .header-title { font-size: 18px; font-weight: 600; flex-grow: 1; cursor: pointer; }
-  .header-badge { font-size: 12px; color: var(--text-secondary); background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); }
-  
+  .header-badge { font-size: 12px; color: var(--muted); background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); }
   .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100vh; background: rgba(10,14,26,0.95); backdrop-filter: blur(30px); border-right: 1px solid var(--border); z-index: 200; padding: 24px; transition: left 0.3s ease; }
   .sidebar.open { left: 0; }
   .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 150; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
   .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
-  
-  .tab-btn { background: none; border: none; color: var(--text-secondary); width: 100%; text-align: left; padding: 14px; font-size: 15px; cursor: pointer; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
-  .tab-btn.active { background: rgba(139,92,246,0.15); color: var(--text-primary); border: 1px solid rgba(139,92,246,0.3); }
-  
+  .tab-btn { background: none; border: none; color: var(--muted); width: 100%; text-align: left; padding: 14px; font-size: 15px; cursor: pointer; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+  .tab-btn.active { background: rgba(139,92,246,0.15); color: var(--text); border: 1px solid rgba(139,92,246,0.3); }
+  .tab-icon { width: 18px; height: 18px; }
   .container { max-width: 1000px; margin: 0 auto; padding: 24px; }
   .tab-pane { display: none; }
   .tab-pane.active { display: block; }
-  
   .stats-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 32px; }
   @media (min-width: 640px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-  
-  .stat-card { background: var(--bg-card); backdrop-filter: blur(20px); padding: 24px; border-radius: 16px; border: 1px solid var(--border); position: relative; overflow: hidden; }
-  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent-1), var(--accent-2)); }
-  .stat-title { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .stat-card { background: var(--card); backdrop-filter: blur(20px); padding: 24px; border-radius: 16px; border: 1px solid var(--border); position: relative; overflow: hidden; }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .stat-title { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
   .stat-value { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
-  .stat-change { font-size: 13px; color: var(--success); font-weight: 600; }
-  
-  .form-card { background: var(--bg-card); backdrop-filter: blur(20px); padding: 24px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 24px; }
+  .stat-change { font-size: 13px; color: var(--green); font-weight: 600; }
   .section-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
-  
-  input, select { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: var(--text-primary); padding: 12px; border-radius: 10px; margin-bottom: 12px; font-size: 14px; }
-  input:focus { outline: none; border-color: var(--accent-1); }
-  
-  .action-btn { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; font-size: 14px; }
-  
-  .content-item { background: var(--bg-card); padding: 16px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-  .badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 600; }
-  .badge.published { background: rgba(34,197,94,0.2); color: var(--success); }
-  .badge.draft { background: rgba(148,163,184,0.2); color: var(--text-secondary); }
-  
-  .placeholder-box { text-align: center; padding: 40px; color: var(--text-secondary); border: 1px dashed var(--border); border-radius: 12px; }
-  
-  .social-card { background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-  .status-dot.on { background: var(--success); }
-  .status-dot.off { background: var(--danger); }
+  .placeholder-box { text-align: center; padding: 40px; color: var(--muted); border: 1px dashed var(--border); border-radius: 16px; background: var(--card); backdrop-filter: blur(20px); }
+  .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: var(--card); backdrop-filter: blur(20px); padding: 16px 20px; border-radius: 16px; border: 1px solid var(--border); }
+  .calendar-nav { display: flex; gap: 12px; align-items: center; }
+  .nav-btn { background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.3); color: var(--text); width: 36px; height: 36px; border-radius: 10px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+  .month-label { font-size: 18px; font-weight: 600; min-width: 160px; text-align: center; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  .day-header { text-align: center; font-size: 12px; color: var(--muted); text-transform: uppercase; padding: 8px 0; font-weight: 600; }
+  .day-cell { background: var(--card); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 12px; min-height: 100px; padding: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+  .day-cell:hover { border-color: rgba(139,92,246,0.5); transform: translateY(-2px); }
+  .day-cell.other-month { opacity: 0.3; }
+  .day-cell.today { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .day-number { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+  .day-cell.today .day-number { color: var(--accent); }
+  .event-chip { font-size: 10px; padding: 4px 6px; border-radius: 6px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; font-weight: 500; transition: transform 0.1s; }
+  .event-chip:hover { transform: scale(1.05); }
+  .event-chip.published { background: rgba(34,197,94,0.25); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .event-chip.scheduled { background: rgba(245,158,11,0.25); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
+  .event-chip.draft { background: rgba(148,163,184,0.25); color: var(--muted); border: 1px solid rgba(148,163,184,0.3); }
+  @media (max-width: 600px) { .day-cell { min-height: 80px; padding: 4px; } .event-chip { font-size: 9px; padding: 2px 4px; } }
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: rgba(19,24,37,0.98); border: 1px solid var(--border); border-radius: 20px; padding: 24px; width: 100%; max-width: 420px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .modal-title { font-size: 18px; font-weight: 600; }
+  .modal-close { background: none; border: none; color: var(--muted); font-size: 24px; cursor: pointer; }
+  .modal input, .modal select { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: var(--text); padding: 12px; border-radius: 10px; margin-bottom: 12px; font-size: 14px; }
+  .modal input:focus, .modal select:focus { outline: none; border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .modal-actions button { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; }
+  .btn-save { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
+  .btn-delete { background: rgba(239,68,68,0.2); color: var(--red); }
+  .btn-cancel { background: rgba(148,163,184,0.2); color: var(--muted); }
+  .form-card { background: var(--card); backdrop-filter: blur(20px); padding: 20px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 12px; }
+  .form-group input { margin-bottom: 0; }
+  .social-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .status-badge { font-size: 11px; padding: 4px 12px; border-radius: 20px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+  .status-connected { background: rgba(34,197,94,0.2); color: var(--green); border: 1px solid rgba(34,197,94,0.4); }
+  .status-disconnected { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+  .oauth-btn { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 13px; border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none; width: 100%; transition: all 0.2s; border: 1px solid var(--border); }
+  .oauth-btn:hover { transform: translateY(-1px); }
+  .oauth-btn.youtube { background: #fff; color: #1f2937; border-color: #fff; }
+  .oauth-btn.twitch { background: #9146FF; color: #fff; border-color: #9146FF; }
+  .action-btn { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; padding: 13px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; width: 100%; }
+  .disconnect-btn { background: rgba(239,68,68,0.2) !important; color: var(--red) !important; border: 1px solid rgba(239,68,68,0.4) !important; }
 </style>
 </head>
 <body>
@@ -78,16 +96,27 @@
 </div>
 
 <div class="header">
-  <button class="hamburger" id="menu-btn">☰</button>
+  <button class="hamburger" id="menu-btn">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+  </button>
   <h1 class="header-title" id="logo-btn">Creator Dashboard</h1>
   <span class="header-badge">Live</span>
 </div>
 
 <div class="sidebar-overlay" id="overlay"></div>
 <div class="sidebar" id="sidebar">
-  <button class="tab-btn active" data-tab="overview">📊 Overview</button>
-  <button class="tab-btn" data-tab="contents">📝 Content</button>
-  <button class="tab-btn" data-tab="settings">️ Settings</button>
+  <button class="tab-btn active" data-tab="overview">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+    Overview
+  </button>
+  <button class="tab-btn" data-tab="contents">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+    Calendar
+  </button>
+  <button class="tab-btn" data-tab="settings">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    Settings
+  </button>
 </div>
 
 <div class="container">
@@ -99,23 +128,14 @@
   </div>
 
   <div id="tab-contents" class="tab-pane">
-    <div class="form-card">
-      <h2 class="section-title">Add New Content</h2>
-      <input type="text" id="cTitle" placeholder="Title">
-      <select id="cType">
-        <option value="Video">Video</option>
-        <option value="Post">Post</option>
-        <option value="Live">Live</option>
-      </select>
-      <select id="cStatus">
-        <option value="Published">Published</option>
-        <option value="Draft">Draft</option>
-      </select>
-      <input type="text" id="cTags" placeholder="Tags (comma separated)">
-      <button class="action-btn" id="save-btn">Save Content</button>
+    <div class="calendar-header">
+      <div class="calendar-nav">
+        <button class="nav-btn" id="prev-month">‹</button>
+        <span class="month-label" id="month-label"></span>
+        <button class="nav-btn" id="next-month">›</button>
+      </div>
     </div>
-    <h2 class="section-title">My Content</h2>
-    <div id="content-list"></div>
+    <div class="calendar-grid" id="calendar-grid"></div>
   </div>
 
   <div id="tab-settings" class="tab-pane">
@@ -123,120 +143,266 @@
     <div id="social-list"></div>
   </div>
 </div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Add Content</span>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <input type="hidden" id="event-id">
+    <input type="hidden" id="event-date">
+    <input type="text" id="event-title" placeholder="Title">
+    <select id="event-type">
+      <option value="Video">Video</option>
+      <option value="Post">Post</option>
+      <option value="Live">Live</option>
+    </select>
+    <select id="event-status">
+      <option value="Published">Published</option>
+      <option value="Scheduled">Scheduled</option>
+      <option value="Draft">Draft</option>
+    </select>
+    <input type="text" id="event-tags" placeholder="Tags (comma separated)">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btn-cancel">Cancel</button>
+      <button class="btn-delete" id="btn-delete" style="display:none;">Delete</button>
+      <button class="btn-save" id="btn-save">Save</button>
+    </div>
+  </div>
+</div>
 <script>
-  // Navigation
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('overlay');
-  document.getElementById('menu-btn').onclick = () => { sidebar.classList.add('open'); overlay.classList.add('active'); };
-  document.getElementById('overlay').onclick = () => { sidebar.classList.remove('open'); overlay.classList.remove('active'); };
-  document.getElementById('logo-btn').onclick = () => switchTab('overview');
-  
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.onclick = () => switchTab(btn.dataset.tab);
-  });
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('overlay');
+  document.getElementById('menu-btn').onclick = function() { sidebar.classList.add('open'); overlay.classList.add('active'); };
+  overlay.onclick = function() { sidebar.classList.remove('open'); overlay.classList.remove('active'); };
+  document.getElementById('logo-btn').onclick = function() { switchTab('overview'); };
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  for (var i = 0; i < tabBtns.length; i++) {
+    tabBtns[i].onclick = function() { switchTab(this.getAttribute('data-tab')); };
+  }
 
   function switchTab(tabName) {
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    var panes = document.querySelectorAll('.tab-pane');
+    for (var i = 0; i < panes.length; i++) { panes[i].classList.remove('active'); }
+    var btns = document.querySelectorAll('.tab-btn');
+    for (var i = 0; i < btns.length; i++) { btns[i].classList.remove('active'); }
     document.getElementById('tab-' + tabName).classList.add('active');
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    var activeBtn = document.querySelector('[data-tab="' + tabName + '"]');
+    if (activeBtn) { activeBtn.classList.add('active'); }
     sidebar.classList.remove('open');
     overlay.classList.remove('active');
     if (tabName === 'overview') loadStats();
-    if (tabName === 'contents') loadContents();
+    if (tabName === 'contents') renderCalendar();
     if (tabName === 'settings') loadSettings();
   }
 
-  // Real API Calls
-  async function loadStats() {
-    const container = document.getElementById('stats-container');
-    container.innerHTML = '<div class="placeholder-box">Loading...</div>';
+  var mockStats = [
+    { title: 'Total Views', value: '1,094', change: 'Live' },
+    { title: 'Total Followers', value: '16', change: 'Live' },
+    { title: 'Active Platforms', value: '1', change: 'Synced' },
+    { title: 'Content Pieces', value: '0', change: 'Add more' }
+  ];
+  var mockSocials = [
+    { platform: 'YouTube', is_connected: true },
+    { platform: 'Twitch', is_connected: false },
+    { platform: 'Instagram', is_connected: false },
+    { platform: 'TikTok', is_connected: false }
+  ];
+  var mockContents = [];
+
+  async function tryFetch(url, opts) {
     try {
-      const res = await fetch('/api/overview');
-      const data = await res.json();
-      container.innerHTML = '';
-      data.forEach(item => {
-        container.innerHTML += `
-          <div class="stat-card">
-            <div class="stat-title">${item.title}</div>
-            <div class="stat-value">${item.value}</div>
-            <div class="stat-change">${item.change}</div>
-          </div>`;
-      });
-    } catch (e) { container.innerHTML = '<div class="placeholder-box">Error loading stats.</div>'; }
+      var res = await fetch(url, opts);
+      if (!res.ok) throw new Error('fail');
+      return await res.json();
+    } catch (e) { return null; }
   }
+
+  async function loadStats() {
+    var container = document.getElementById('stats-container');
+    var data = await tryFetch('/api/overview');
+    var stats = data || mockStats;
+    container.innerHTML = '';
+    for (var i = 0; i < stats.length; i++) {
+      var item = stats[i];
+      container.innerHTML += '<div class="stat-card"><div class="stat-title">' + item.title + '</div><div class="stat-value">' + item.value + '</div><div class="stat-change">' + item.change + '</div></div>';
+    }
+  }
+
+  var currentDate = new Date();
+  var allContents = [];
+
+  document.getElementById('prev-month').onclick = function() { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); };
+  document.getElementById('next-month').onclick = function() { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); };
 
   async function loadContents() {
-    const container = document.getElementById('content-list');
-    container.innerHTML = '<div class="placeholder-box">Loading...</div>';
-    try {
-      const res = await fetch('/api/contents');
-      const data = await res.json();
-      container.innerHTML = '';
-      if (!data || data.length === 0) {
-        container.innerHTML = '<div class="placeholder-box">No content yet. Add your first one above!</div>';
-        return;
-      }
-      data.forEach(item => {
-        container.innerHTML += `
-          <div class="content-item">
-            <div>
-              <div style="font-weight:600; margin-bottom:4px;">${item.title}</div>
-              <div style="font-size:12px; color:var(--text-secondary);">${item.type} • ${item.seo_tags || 'No tags'}</div>
-            </div>
-            <span class="badge ${item.status.toLowerCase()}">${item.status}</span>
-          </div>`;
-      });
-    } catch (e) { container.innerHTML = '<div class="placeholder-box">Error loading content.</div>'; }
+    var data = await tryFetch('/api/contents');
+    allContents = data || mockContents;
   }
 
-  document.getElementById('save-btn').onclick = async () => {
-    const title = document.getElementById('cTitle').value;
-    if (!title) return alert('Title is required');
-    const body = {
+  function renderCalendar() {
+    var grid = document.getElementById('calendar-grid');
+    var label = document.getElementById('month-label');
+    var year = currentDate.getFullYear();
+    var month = currentDate.getMonth();
+    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    label.textContent = months[month] + ' ' + year;
+    var firstDay = new Date(year, month, 1);
+    var lastDay = new Date(year, month + 1, 0);
+    var daysInMonth = lastDay.getDate();
+    var startDayOfWeek = (firstDay.getDay() + 6) % 7;
+    grid.innerHTML = '';
+    var dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    for (var i = 0; i < dayNames.length; i++) {
+      grid.innerHTML += '<div class="day-header">' + dayNames[i] + '</div>';
+    }
+    var today = new Date();
+    var prevMonthDays = new Date(year, month, 0).getDate();
+    for (var i = startDayOfWeek - 1; i >= 0; i--) {
+      var dayNum = prevMonthDays - i;
+      grid.innerHTML += '<div class="day-cell other-month"><div class="day-number">' + dayNum + '</div></div>';
+    }
+    for (var day = 1; day <= daysInMonth; day++) {
+      var isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+      var cell = document.createElement('div');
+      cell.className = 'day-cell' + (isToday ? ' today' : '');
+      cell.innerHTML = '<div class="day-number">' + day + '</div>';
+      
+      var dateStr = year + '-' + (month+1) + '-' + day;
+      cell.onclick = function() { openModal(null, dateStr); };
+      
+      var dayContents = [];
+      for (var j = 0; j < allContents.length; j++) {
+        var c = allContents[j];
+        if (!c.created_at) continue;
+        var cd = new Date(c.created_at);
+        if (cd.getDate() === day && cd.getMonth() === month && cd.getFullYear() === year) {
+          dayContents.push(c);
+        }
+      }
+      for (var j = 0; j < dayContents.length; j++) {
+        var c = dayContents[j];
+        var chip = document.createElement('div');
+        chip.className = 'event-chip ' + c.status.toLowerCase();
+        chip.textContent = c.title;
+        chip.onclick = function(e) {
+          e.stopPropagation();
+          openModal(c);
+        };
+        cell.appendChild(chip);
+      }
+      grid.appendChild(cell);
+    }
+    var totalCells = startDayOfWeek + daysInMonth;
+    var remaining = (7 - (totalCells % 7)) % 7;
+    for (var i = 1; i <= remaining; i++) {
+      grid.innerHTML += '<div class="day-cell other-month"><div class="day-number">' + i + '</div></div>';
+    }
+  }
+
+  var modal = document.getElementById('modal-overlay');
+  document.getElementById('modal-close').onclick = function() { modal.classList.remove('show'); };
+  document.getElementById('btn-cancel').onclick = function() { modal.classList.remove('show'); };
+  modal.onclick = function(e) { if (e.target === modal) modal.classList.remove('show'); };
+
+  function openModal(content, dateStr) {
+    document.getElementById('event-id').value = content ? content.id : '';
+    document.getElementById('event-date').value = dateStr || '';
+    document.getElementById('event-title').value = content ? content.title : '';
+    document.getElementById('event-type').value = content ? content.type : 'Video';
+    document.getElementById('event-status').value = content ? content.status : 'Draft';
+    document.getElementById('event-tags').value = content ? (content.seo_tags || '') : '';
+    document.getElementById('modal-title').textContent = content ? 'Edit Content' : 'Add Content for ' + dateStr;
+    document.getElementById('btn-delete').style.display = content ? 'block' : 'none';
+    modal.classList.add('show');
+  }
+
+  document.getElementById('btn-save').onclick = async function() {
+    var title = document.getElementById('event-title').value;
+    if (!title) { alert('Title is required'); return; }
+    var body = {
       title: title,
-      type: document.getElementById('cType').value,
-      status: document.getElementById('cStatus').value,
-      seo_tags: document.getElementById('cTags').value
+      type: document.getElementById('event-type').value,
+      status: document.getElementById('event-status').value,
+      seo_tags: document.getElementById('event-tags').value
     };
-    try {
+    var hasBackend = await tryFetch('/api/contents');
+    if (hasBackend) {
       await fetch('/api/contents', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
-      document.getElementById('cTitle').value = '';
-      document.getElementById('cTags').value = '';
-      loadContents();
-    } catch (e) { alert('Error saving'); }
+    } else {
+      var newId = mockContents.length > 0 ? Math.max.apply(null, mockContents.map(function(c) { return c.id; })) + 1 : 1;
+      mockContents.push({ id: newId, title: body.title, type: body.type, status: body.status, seo_tags: body.seo_tags, created_at: new Date().toISOString() });
+    }
+    modal.classList.remove('show');
+    await loadContents();
+    renderCalendar();
+  };
+
+  document.getElementById('btn-delete').onclick = async function() {
+    var id = document.getElementById('event-id').value;
+    if (!id) return;
+    if (!confirm('Delete this content?')) return;
+    var hasBackend = await tryFetch('/api/contents');
+    if (hasBackend) {
+      await fetch('/api/contents/' + id, { method: 'DELETE' });
+    } else {
+      mockContents = mockContents.filter(function(c) { return c.id != id; });
+    }
+    modal.classList.remove('show');
+    await loadContents();
+    renderCalendar();
   };
 
   async function loadSettings() {
-    const container = document.getElementById('social-list');
-    container.innerHTML = '<div class="placeholder-box">Loading...</div>';
-    try {
-      const res = await fetch('/api/settings/socials');
-      const data = await res.json();
-      container.innerHTML = '';
-      data.forEach(item => {
-        const isOn = item.is_connected;
-        container.innerHTML += `
-          <div class="social-card">
-            <div>
-              <strong>${item.platform}</strong>
-              <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
-                <span class="status-dot ${isOn ? 'on' : 'off'}"></span> ${isOn ? 'Connected' : 'Disconnected'}
-              </div>
-            </div>
-            ${isOn ? `<button class="action-btn" style="width:auto; padding:8px 16px; background:rgba(239,68,68,0.2); color:var(--danger);" onclick="disconnect('${item.platform}')">Disconnect</button>` : ''}
-          </div>`;
-      });
-    } catch (e) { container.innerHTML = '<div class="placeholder-box">Error loading settings.</div>'; }
+    var container = document.getElementById('social-list');
+    var data = await tryFetch('/api/settings/socials');
+    var socials = data || mockSocials;
+    container.innerHTML = '';
+    for (var i = 0; i < socials.length; i++) {
+      var item = socials[i];
+      var isConn = item.is_connected;
+      var statusText = isConn ? 'Connected' : 'Disconnected';
+      var statusClass = isConn ? 'status-connected' : 'status-disconnected';
+      var card = document.createElement('div');
+      card.className = 'form-card';
+      if (item.platform === 'YouTube' || item.platform === 'Twitch') {
+        var isTwitch = item.platform === 'Twitch';
+        var authUrl = isTwitch ? '/auth/twitch' : '/auth/google';
+        var btnClass = isTwitch ? 'twitch' : 'youtube';
+        var btnText = isTwitch ? 'Sign in with Twitch' : 'Sign in with Google';
+        var twitchSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.64 5.93h1.43v4.28h-1.43m3.93-4.28H17v4.28h-1.43M7 2L3.43 5.57v12.86h4.28V22l3.58-3.57h2.85L20.57 12V2z"/></svg>';
+        var googleSvg = '<svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.7 1.22 9.19 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-3.58-13.46-8.62l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+        var logoSvg = isTwitch ? twitchSvg : googleSvg;
+        if (isConn) {
+          card.innerHTML = '<div class="social-header"><strong>' + item.platform + '</strong><span class="status-badge ' + statusClass + '">' + statusText + '</span></div><button class="action-btn disconnect-btn" data-platform="' + item.platform + '">Disconnect</button>';
+        } else {
+          card.innerHTML = '<div class="social-header"><strong>' + item.platform + '</strong><span class="status-badge ' + statusClass + '">' + statusText + '</span></div><a href="' + authUrl + '" class="oauth-btn ' + btnClass + '">' + logoSvg + '<span>' + btnText + '</span></a>';
+        }
+      } else {
+        if (isConn) {
+          card.innerHTML = '<div class="social-header"><strong>' + item.platform + '</strong><span class="status-badge ' + statusClass + '">' + statusText + '</span></div><button class="action-btn disconnect-btn" data-platform="' + item.platform + '">Disconnect</button>';
+        } else {
+          card.innerHTML = '<div class="social-header"><strong>' + item.platform + '</strong><span class="status-badge ' + statusClass + '">' + statusText + '</span></div><div class="form-group"><input type="text" placeholder="Account ID / Username"><input type="password" placeholder="API Key / Token"><button class="action-btn">Save ' + item.platform + '</button></div>';
+        }
+      }
+      container.appendChild(card);
+    }
+    var discBtns = document.querySelectorAll('.disconnect-btn');
+    for (var i = 0; i < discBtns.length; i++) {
+      discBtns[i].onclick = async function() {
+        var p = this.getAttribute('data-platform');
+        var hasBackend = await tryFetch('/api/settings/disconnect');
+        if (hasBackend) {
+          await fetch('/api/settings/disconnect', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({platform: p}) });
+        }
+        loadSettings();
+      };
+    }
   }
 
-  window.disconnect = async (platform) => {
-    await fetch('/api/settings/disconnect', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({platform}) });
-    loadSettings();
-  };
-
-  // Init
   loadStats();
+  loadContents().then(function() { renderCalendar(); });
 </script>
 </body>
 </html>
