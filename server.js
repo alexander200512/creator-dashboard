@@ -1,6 +1,7 @@
 const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
+const { google } = require('googleapis');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -17,15 +18,6 @@ app.use(express.json());
 // ============================================
 async function initDb() {
   try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS kpi_metrics (
-        id SERIAL PRIMARY KEY,
-        title VARCHAR(100),
-        value VARCHAR(50),
-        change_percentage VARCHAR(20),
-        category VARCHAR(50)
-      )
-    `);
     await pool.query(`
       CREATE TABLE IF NOT EXISTS contents (
         id SERIAL PRIMARY KEY,
@@ -47,17 +39,6 @@ async function initDb() {
       )
     `);
 
-    const resKpi = await pool.query('SELECT COUNT(*) FROM kpi_metrics');
-    if (parseInt(resKpi.rows[0].count) === 0) {
-      await pool.query(`
-        INSERT INTO kpi_metrics (title, value, change_percentage, category) VALUES
-        ('Total Views', '142.5K', '+12.4% vs last month', 'traffic'),
-        ('New Subscribers', '1,280', '+8.1% vs last month', 'audience'),
-        ('Estimated Revenue', '€ 845,00', '+15.3% vs last month', 'monetization'),
-        ('Engagement Rate', '6.8%', '+0.5% vs last month', 'engagement')
-      `);
-    }
-
     const resSocial = await pool.query('SELECT COUNT(*) FROM social_integrations');
     if (parseInt(resSocial.rows[0].count) === 0) {
       await pool.query(`
@@ -76,17 +57,145 @@ async function initDb() {
 initDb();
 
 // ============================================
-// API ROUTES
+// GOOGLE OAUTH CONFIG
 // ============================================
-app.get('/api/overview', async (req, res) => {
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI
+);
+
+app.get('/auth/google', (req, res) => {
+  const scopes = [
+    'https://www.googleapis.com/auth/youtube.readonly',
+    'https://www.googleapis.com/auth/yt-analytics.readonly'
+  ];
+  const url = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: scopes,
+    prompt: 'consent'
+  });
+  res.redirect(url);
+});
+
+app.get('/auth/google/callback', async (req, res) => {
+  const code = req.query.code;
   try {
-    const result = await pool.query('SELECT * FROM kpi_metrics ORDER BY id ASC');
-    res.json(result.rows);
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
+    await pool.query(
+      `UPDATE social_integrations
+       SET account_id = $1, api_key = $2, is_connected = $3, updated_at = CURRENT_TIMESTAMP
+       WHERE platform = $4`,
+      ['YouTube User', tokens.refresh_token || tokens.access_token, true, 'YouTube']
+    );
+    res.redirect('/?login=success');
   } catch (err) {
-    res.status(500).json({ error: "Overview API Error" });
+    console.error('Error during Google OAuth:', err);
+    res.status(500).redirect('/?login=error');
   }
 });
 
+// ============================================
+// TWITCH OAUTH
+// ============================================
+const twitchClientId = process.env.TWITCH_CLIENT_ID;
+const twitchClientSecret = process.env.TWITCH_CLIENT_SECRET;
+const twitchRedirectUri = process.env.TWITCH_REDIRECT_URI || `${process.env.APP_URL}/auth/twitch/callback`;
+
+app.get('/auth/twitch', (req, res) => {
+  const scopes = 'user:read:email channel:read:subscriptions';
+  const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${twitchClientId}&redirect_uri=${encodeURIComponent(twitchRedirectUri)}&response_type=code&scope=${scopes}`;
+  res.redirect(authUrl);
+});
+
+app.get('/auth/twitch/callback', async (req, res) => {
+  const code = req.query.code;
+  try {
+    const tokenResponse = await fetch('https://id.twitch.tv/oauth2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: twitchClientId,
+        client_secret: twitchClientSecret,
+        code: code,
+        grant_type: 'authorization_code',
+        redirect_uri: twitchRedirectUri
+      })
+    });
+    const tokens = await tokenResponse.json();
+    await pool.query(
+      `UPDATE social_integrations
+       SET account_id = $1, api_key = $2, is_connected = $3, updated_at = CURRENT_TIMESTAMP
+       WHERE platform = $4`,
+      ['Twitch User', tokens.access_token, true, 'Twitch']
+    );
+    res.redirect('/?login=success');
+  } catch (err) {
+    console.error('Error during Twitch OAuth:', err);
+    res.status(500).redirect('/?login=error');
+  }
+});
+
+// ============================================
+// API: GLOBAL STATS (Aggregates all connected accounts)
+// ============================================
+app.get('/api/overview', async (req, res) => {
+  try {
+    const socials = await pool.query('SELECT * FROM social_integrations WHERE is_connected = true');
+    
+    let totalViews = 0;
+    let totalFollowers = 0;
+    let activePlatforms = 0;
+
+    // Fetch real data from connected platforms
+    for (let row of socials.rows) {
+      activePlatforms++;
+      
+      if (row.platform === 'YouTube' && row.api_key) {
+        try {
+          // Use stored refresh token to get fresh access token
+          oauth2Client.setCredentials({ refresh_token: row.api_key });
+          const youtube = google.youtube({ version: 'v3', auth: oauth2Client });
+          
+          // Get channel stats
+          const response = await youtube.channels.list({
+            part: 'statistics',
+            mine: true
+          });
+          
+          if (response.data.items && response.data.items.length > 0) {
+            const stats = response.data.items[0].statistics;
+            totalViews += parseInt(stats.viewCount || 0);
+            totalFollowers += parseInt(stats.subscriberCount || 0);
+          }
+        } catch (ytErr) {
+          console.error('YouTube API Error:', ytErr.message);
+        }
+      }
+      
+      // Note: Twitch API requires a separate client-credentials token flow. 
+      // For now, we count it as active. You can add Twitch Helix API calls here later.
+    }
+
+    // Format data for frontend
+    const stats = [
+      { title: 'Total Views', value: totalViews.toLocaleString(), change: activePlatforms > 0 ? 'Live' : 'No data', category: 'traffic' },
+      { title: 'Total Followers', value: totalFollowers.toLocaleString(), change: activePlatforms > 0 ? 'Live' : 'No data', category: 'audience' },
+      { title: 'Active Platforms', value: activePlatforms.toString(), change: 'Synced', category: 'engagement' },
+      { title: 'Content Pieces', value: '0', change: 'Add more', category: 'monetization' } // Placeholder for content count
+    ];
+
+    res.json(stats);
+  } catch (err) {
+    console.error('Overview API Error:', err);
+    res.status(500).json({ error: "Failed to load stats" });
+  }
+});
+
+// ============================================
+// API: CONTENTS
+// ============================================
 app.get('/api/contents', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM contents ORDER BY id DESC');
@@ -109,6 +218,9 @@ app.post('/api/contents', async (req, res) => {
   }
 });
 
+// ============================================
+// API: SETTINGS
+// ============================================
 app.get('/api/settings/socials', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM social_integrations ORDER BY id ASC');
@@ -152,90 +264,7 @@ app.post('/api/settings/disconnect', async (req, res) => {
 });
 
 // ============================================
-// GOOGLE OAUTH (YouTube)
-// ============================================
-const { google } = require('googleapis');
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  process.env.GOOGLE_REDIRECT_URI
-);
-
-app.get('/auth/google', (req, res) => {
-  const scopes = [
-    'https://www.googleapis.com/auth/youtube.readonly',
-    'https://www.googleapis.com/auth/yt-analytics.readonly'
-  ];
-  const url = oauth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: scopes,
-    prompt: 'consent'
-  });
-  res.redirect(url);
-});
-
-app.get('/auth/google/callback', async (req, res) => {
-  const code = req.query.code;
-  try {
-    const { tokens } = await oauth2Client.getToken(code);
-    oauth2Client.setCredentials(tokens);
-    await pool.query(
-      `UPDATE social_integrations
-       SET account_id = $1, api_key = $2, is_connected = $3, updated_at = CURRENT_TIMESTAMP
-       WHERE platform = $4`,
-      ['YouTube User', tokens.refresh_token || tokens.access_token, true, 'YouTube']
-    );
-    res.redirect('/?login=success');
-  } catch (err) {
-    console.error('Error during Google OAuth authentication:', err);
-    res.status(500).redirect('/?login=error');
-  }
-});
-
-// ============================================
-// TWITCH OAUTH
-// ============================================
-const twitchClientId = process.env.TWITCH_CLIENT_ID;
-const twitchClientSecret = process.env.TWITCH_CLIENT_SECRET;
-const twitchRedirectUri = process.env.TWITCH_REDIRECT_URI || `${process.env.APP_URL}/auth/twitch/callback`;
-
-app.get('/auth/twitch', (req, res) => {
-  const scopes = 'user:read:email channel:read:subscriptions';
-  const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${twitchClientId}&redirect_uri=${encodeURIComponent(twitchRedirectUri)}&response_type=code&scope=${scopes}`;
-  res.redirect(authUrl);
-});
-
-app.get('/auth/twitch/callback', async (req, res) => {
-  const code = req.query.code;
-  try {
-    const tokenResponse = await fetch('https://id.twitch.tv/oauth2/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: twitchClientId,
-        client_secret: twitchClientSecret,
-        code: code,
-        grant_type: 'authorization_code',
-        redirect_uri: twitchRedirectUri
-      })
-    });
-    const tokens = await tokenResponse.json();
-
-    await pool.query(
-      `UPDATE social_integrations
-       SET account_id = $1, api_key = $2, is_connected = $3, updated_at = CURRENT_TIMESTAMP
-       WHERE platform = $4`,
-      ['Twitch User', tokens.access_token, true, 'Twitch']
-    );
-    res.redirect('/?login=success');
-  } catch (err) {
-    console.error('Error during Twitch OAuth authentication:', err);
-    res.status(500).redirect('/?login=error');
-  }
-});
-
-// ============================================
-// SERVIZIO FRONTEND
+// SERVE FRONTEND
 // ============================================
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
