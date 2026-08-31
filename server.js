@@ -193,7 +193,7 @@ app.get('/auth/google/callback', async (req, res) => {
 });
 
 // ============================================
-// TWITCH OAUTH (NUOVO!)
+// TWITCH OAUTH
 // ============================================
 const twitchClientId = process.env.TWITCH_CLIENT_ID;
 const twitchClientSecret = process.env.TWITCH_CLIENT_SECRET;
